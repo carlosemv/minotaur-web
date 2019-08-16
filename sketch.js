@@ -22,11 +22,11 @@ function preload() {
 // }
 
 function setup() {
-  tile = { w: 50, h: 50, c: 3};
+  tile = { w: 10, h: 10, c: 0};
   tile.hw = tile.w/2;
   tile.hh = tile.h/2;
 
-  pov = { w: 11, h: 11 };
+  pov = { w: 51, h: 51 };
   pov.hw = Math.floor(pov.w/2);
   pov.hh = Math.floor(pov.h/2);
 
@@ -71,12 +71,12 @@ class Tile {
     this.entity = null;
   }
 
-  isOccupied() {
+  occupied() {
     return (this.entity != null);
   }
 
   available() {
-    return (this.type == TileType.basic && !this.isOccupied())
+    return (this.type == TileType.basic && !this.occupied())
   }
 
   insert(entity) {
@@ -91,11 +91,11 @@ class Tile {
     stroke(180, 0, 0);
     switch (this.type) {
       case TileType.basic:
-        strokeWeight(3);
+        strokeWeight(0);
         fill(0xdd);
         break;
       case TileType.wall:
-        strokeWeight(3);
+        strokeWeight(0);
         fill(0x77)
         break;
       case TileType.border:
@@ -108,7 +108,7 @@ class Tile {
     }
     rect(x*tile.w, y*tile.h,
       tile.w, tile.h, tile.c);
-    if (this.isOccupied())
+    if (this.occupied())
       this.entity.draw(x, y);
   }
 }
@@ -120,7 +120,8 @@ class Enemy {
 
   draw(x, y) {
     imageMode(CENTER);
-    image(this.sprite, x*tile.w+tile.hw, y*tile.h+tile.hh);
+    image(this.sprite, x*tile.w+tile.hw,
+      y*tile.h+tile.hh, tile.w, tile.h);
   }
 }
 
@@ -148,15 +149,21 @@ class Player {
         || map.isOut(this.x, this.y)) {
       this.x = ox;
       this.y = oy;
-    } else {
-      map.evict(ox, oy);
-      map.insert(this.x, this.y, this);
+
+      return;
     }
+
+    // if (map.get(this.x, this.y).)
+
+
+    map.evict(ox, oy);
+    map.insert(this.x, this.y, this);
   }
 
   draw() {
     imageMode(CENTER);
-    image(this.sprite, width/2, height/2);
+    image(this.sprite, width/2, height/2,
+      tile.w, tile.h);
   }
 }
 
