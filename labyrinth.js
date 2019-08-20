@@ -1,15 +1,220 @@
 var grid;
+var map;
+var tiles = {w: 201, h: 201};
+var centerTile = {x: Math.floor(tiles.w/2), y: Math.floor(tiles.h/2)}
+var tileSz = 3;
+var res = {w: tiles.w * tileSz, h: tiles.h * tileSz};
+var layers = 10;
+var layerSz;
+var screenRadius;
 
 function setup() {
-  createCanvas(800, 800);
-  grid = new Grid(10);
+  randomSeed(1);
+  createCanvas(res.w, res.h);
+  screenRadius = 0.99 * Math.min(res.w, res.h) / 2;
+  layerSz = screenRadius / layers;
+  console.log(centerTile);
+  console.log(layerSz);
+  grid = new Grid(layers);
   gen = new Kruskal(grid);
   gen.run();
+  map = new World(grid);
 }
 
 function draw() {
   background(0);
-  grid.draw(35);
+  map.draw(layerSz);
+}
+
+class World {
+  constructor(grid) {
+    this.grid = grid;
+    this.floor = new Array(tiles.w*tiles.h);
+  }
+
+  plotLine(startx, starty, endx, endy) {
+    if (startx > endx) {
+      [startx, endx] = [endx, startx];
+      [starty, endy] = [endy, starty];
+    }
+    var rad = Math.atan2(starty - centerTile.y,
+      startx - centerTile.x);
+    if (rad < 0)
+      rad += 2 * Math.PI;
+    var oct = Math.ceil(8*rad/(2*Math.PI));
+    var quadrant = Math.floor(oct/2) % 4;
+    var offset = (quadrant < 1 || quadrant > 2) ? -1 : 1;
+    var hdir = quadrant % 2 == 1;
+
+    this.plotSingleLine(startx, starty, endx, endy, 1);
+    if (hdir)
+      this.plotSingleLine(startx+offset, starty, endx+offset, endy, 2);
+    else
+      this.plotSingleLine(startx, starty+offset, endx, endy+offset, 2);
+  }
+
+  plotSingleLine(startx, starty, endx, endy, color) {
+    var dx = endx - startx;
+    var dy = endy - starty;
+
+    var xInc = dx;
+    var yInc = dy;
+
+    if (xInc != 0)
+      xInc = (xInc > 0) ? 1 : -1;
+    if (yInc != 0)
+      yInc = (yInc > 0) ? 1 : -1;
+
+    dx = Math.abs(dx);
+    dy = Math.abs(dy);
+
+    var swapped = false;
+    if (dy > dx) {
+      [dx, dy] = [dy, dx];
+      swapped = true;
+    }
+
+    var pk = 2 * dy - dx;
+    var i0 = 2 * dy;
+    var i1 = i0 - 2 * dx;
+
+    var x = startx;
+    var y = starty;
+    this.paintPoint(x, y, color);
+
+    for (var p = 1; p <= dx; p++) {
+      if (pk < 0) {
+        if (swapped)
+          y += yInc;
+        else
+          x += xInc;
+        pk += i0;
+      } else {
+        y += yInc;
+        x += xInc;
+        pk += i1;
+      }
+      this.paintPoint(x, y, color);
+    }
+  }
+
+  plotArc(centerx, centery, arc) {
+    var x = 0;
+    var y = arc.r;
+
+    var d = 1 - arc.r;
+    var dl = 3;
+    var dse = -2*y + 5;
+
+    this.plotArcPoint(centerx, centery, x, y, arc);
+    while (y > x) {
+      if (d < 0) {
+        d += dl;
+        dse += 2;
+      } else {
+        d += dse;
+        dse += 4;
+        y--;
+      }
+      dl += 2;
+      x++;
+      this.plotArcPoint(centerx, centery, x, y, arc);
+    }
+  }
+
+  plotArcPoint(centerx, centery, x, y, arc) {
+    var sign = [-1, 1];
+    var bool = [true, false];
+
+    for (let xs = 0; xs <= 1; xs++) {
+      for (let ys = 0; ys <= 1; ys++) {
+        for (let flip = 0; flip <= 1; flip++) {
+          var i = centerx;
+          var j = centery;
+
+          if (bool[flip]) {
+            i += sign[xs] * y;
+            j += sign[ys] * x;
+          } else {
+            i += sign[xs] * x;
+            j += sign[ys] * y;
+          }
+
+          var rad = Math.atan2(j - centery, i - centerx);
+          if (rad < 0)
+            rad += 2 * Math.PI;
+
+          if (rad >= arc.start && rad <= arc.end) {
+            this.paintPoint(i, j, 1);
+
+            // draw inward point
+            var oct = Math.ceil(8*rad/(2*Math.PI));
+            var dir = (oct < 4 || oct > 7) ? -1 : 1;
+            if (flip)
+              this.paintPoint(i, j+dir, 2);
+            else
+              this.paintPoint(i+dir, j, 2);
+          }
+        }
+      }
+    }
+  }
+
+  paintPoint(i, j, c) {
+    if (i < 0)
+      i = 0;
+    if (i >= tiles.w)
+      i = tiles.w - 1;
+
+    if (j < 0)
+      j = 0;
+    if (j >= tiles.h)
+      j = tiles.h - 1;
+
+    var idx = j * tiles.w + i;
+    if (idx < 0 || idx >= this.floor.length) {
+      throw "Invalid access at index " + idx;
+    }
+
+    this.floor[idx] = c;
+  }
+
+  wallType(i, j) {
+    var idx = j * tiles.w + i;
+    if (idx < 0 || idx >= this.floor.length) {
+      throw "Invalid access at index " + idx;
+    }
+
+    return this.floor[idx];
+  }
+
+  draw(cellSz) {
+    this.grid.draw(cellSz);
+    for (let i = 0; i < tiles.w; i++) {
+      for (let j = 0; j < tiles.h; j++) {
+        noStroke();
+        if (this.wallType(i, j) == 1) {
+          fill(0xef, 0x20, 0x20);
+        } else if (this.wallType(i, j) == 2) {
+          fill(0x20, 0xef, 0x20);
+        }else {
+          noFill();
+        }
+        rect(i*tileSz, j*tileSz,
+          tileSz, tileSz);
+      }
+    }
+
+    var walls = this.grid.getWalls(Math.round(layerSz/tileSz));
+    for (let i = 0; i < walls.arcs.length; i++) {
+      this.plotArc(centerTile.x, centerTile.y, walls.arcs[i]);
+    }
+    for (let i = 0; i < walls.lines.length; i++) {
+      var line = walls.lines[i];
+      this.plotLine(Math.round(line.startx), Math.round(line.starty),
+        Math.round(line.endx), Math.round(line.endy));
+    }
+  }
 }
 
 class Grid {
@@ -72,6 +277,47 @@ class Grid {
     var row = Math.floor(random(this.size));
     var col = Math.floor(random(this.grid[row].length));
     return this.get(row, col);
+  }
+
+  getWalls(cellSz) {
+    var arcs = [];
+    var lines = []
+    var centerx = centerTile.x;
+    var centery = centerTile.y;
+
+    for (let row = 1; row < this.size; row++) {
+      var theta = 2 * Math.PI / this.grid[row].length;
+      var innerRadius = row * cellSz;
+      var outerRadius = (row + 1) * cellSz;
+
+      for (let col = 0; col < this.grid[row].length; ++col) {
+        var c = this.get(row, col);
+
+        var thetaCcw = col * theta;
+        var thetaCw = (col + 1) * theta;
+
+        var cx = centerx + innerRadius * Math.cos(thetaCw);
+        var cy = centery + innerRadius * Math.sin(thetaCw);
+        var dx = centerx + outerRadius * Math.cos(thetaCw);
+        var dy = centery + outerRadius * Math.sin(thetaCw);
+
+
+        if (!c.linked[c.inward.id]) {
+          var arc = {start: thetaCcw, end: thetaCw, r: innerRadius};
+          arcs.push(arc);
+        }
+
+        if (!c.linked[c.cw.id]) {
+          var line = {startx: cx, starty: cy, endx: dx, endy: dy};
+          lines.push(line);
+        }
+
+      }
+    }
+
+    arcs.push({start: 0, end: 2*Math.PI, r: this.size*cellSz});
+
+    return {arcs: arcs, lines: lines};
   }
 
   draw(cellSz) {
