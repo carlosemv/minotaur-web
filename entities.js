@@ -4,9 +4,10 @@ class Enemy {
   }
 
   draw(x, y) {
+    // console.log("drawing enemy at ", x, " ", y);
     imageMode(CENTER);
-    image(this.sprite, x*tile.w+tile.hw,
-      y*tile.h+tile.hh, tile.w, tile.h);
+    image(this.sprite, x*tile.size+tile.hsize,
+      y*tile.size+tile.hsize, tile.size, tile.size);
   }
 }
 
@@ -50,6 +51,6 @@ class Player {
   draw() {
     imageMode(CENTER);
     image(this.sprite, width/2, height/2,
-      tile.w, tile.h);
+      tile.size, tile.size);
   }
 }

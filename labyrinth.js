@@ -1,24 +1,34 @@
-var grid;
+var labyrinth;
 var map;
-var tiles = {w: 201, h: 201};
-var centerTile = {x: Math.floor(tiles.w/2), y: Math.floor(tiles.h/2)}
-var tileSz = 3;
-var res = {w: tiles.w * tileSz, h: tiles.h * tileSz};
+
+var pov = {w: 201, h: 201};
+var gridSz = 201;
+var centerTile = {x: Math.floor(gridSz/2), y: Math.floor(gridSz/2)}
+var res = undefined;
+var tileSz = undefined;
+var mapSz = undefined;
+
 var layers = 10;
-var layerSz;
-var screenRadius;
+var mapRadius = undefined; // px
+var layerSz = undefined; // px
 
 function setup() {
+  res = {w: 600, h: 600};
+  if (res.w / pov.w != res.h / pov.h)
+    throw "Invalid resolution proportions";
+
   randomSeed(1);
   createCanvas(res.w, res.h);
-  screenRadius = 0.99 * Math.min(res.w, res.h) / 2;
-  layerSz = screenRadius / layers;
-  console.log(centerTile);
-  console.log(layerSz);
-  grid = new Grid(layers);
-  gen = new Kruskal(grid);
+
+  tileSz = res.w / pov.w;
+  mapSz = gridSz * tileSz;
+  mapRadius = 0.99*mapSz / 2;
+  layerSz = mapRadius / layers;
+
+  labyrinth = new Labyrinth(layers);
+  gen = new Kruskal(labyrinth);
   gen.run();
-  map = new World(grid);
+  map = new World(labyrinth);
 }
 
 function draw() {
@@ -27,9 +37,38 @@ function draw() {
 }
 
 class World {
-  constructor(grid) {
-    this.grid = grid;
-    this.floor = new Array(tiles.w*tiles.h);
+  constructor(labyrinth) {
+    this.labyrinth = labyrinth;
+    this.floor = new Array(gridSz*gridSz);
+
+    var walls = this.labyrinth.getWalls(
+      centerTile.x, centerTile.y, layerSz/tileSz);
+    for (let i = 0; i < walls.arcs.length; i++) {
+      this.plotArc(centerTile.x, centerTile.y, walls.arcs[i]);
+    }
+    for (let i = 0; i < walls.lines.length; i++) {
+      var line = walls.lines[i];
+      this.plotLine(Math.round(line.startx), Math.round(line.starty),
+        Math.round(line.endx), Math.round(line.endy));
+    }
+  }
+
+  draw(cellSz) {
+    // this.labyrinth.draw(width/2, height/2, cellSz);
+    for (let i = 0; i < gridSz; i++) {
+      for (let j = 0; j < gridSz; j++) {
+        noStroke();
+        if (this.wallType(i, j) == 1) {
+          fill(0xef, 0x20, 0x20);
+        } else if (this.wallType(i, j) == 2) {
+          fill(0x20, 0xef, 0x20);
+        }else {
+          noFill();
+        }
+        rect(i*tileSz, j*tileSz,
+          tileSz, tileSz);
+      }
+    }
   }
 
   plotLine(startx, starty, endx, endy) {
@@ -100,9 +139,9 @@ class World {
 
   plotArc(centerx, centery, arc) {
     var x = 0;
-    var y = arc.r;
+    var y = Math.round(arc.r);
 
-    var d = 1 - arc.r;
+    var d = 1 - Math.round(arc.r);
     var dl = 3;
     var dse = -2*y + 5;
 
@@ -163,15 +202,15 @@ class World {
   paintPoint(i, j, c) {
     if (i < 0)
       i = 0;
-    if (i >= tiles.w)
-      i = tiles.w - 1;
+    if (i >= gridSz)
+      i = gridSz - 1;
 
     if (j < 0)
       j = 0;
-    if (j >= tiles.h)
-      j = tiles.h - 1;
+    if (j >= gridSz)
+      j = gridSz - 1;
 
-    var idx = j * tiles.w + i;
+    var idx = j * gridSz + i;
     if (idx < 0 || idx >= this.floor.length) {
       throw "Invalid access at index " + idx;
     }
@@ -180,44 +219,16 @@ class World {
   }
 
   wallType(i, j) {
-    var idx = j * tiles.w + i;
+    var idx = j * gridSz + i;
     if (idx < 0 || idx >= this.floor.length) {
       throw "Invalid access at index " + idx;
     }
 
     return this.floor[idx];
   }
-
-  draw(cellSz) {
-    this.grid.draw(cellSz);
-    for (let i = 0; i < tiles.w; i++) {
-      for (let j = 0; j < tiles.h; j++) {
-        noStroke();
-        if (this.wallType(i, j) == 1) {
-          fill(0xef, 0x20, 0x20);
-        } else if (this.wallType(i, j) == 2) {
-          fill(0x20, 0xef, 0x20);
-        }else {
-          noFill();
-        }
-        rect(i*tileSz, j*tileSz,
-          tileSz, tileSz);
-      }
-    }
-
-    var walls = this.grid.getWalls(Math.round(layerSz/tileSz));
-    for (let i = 0; i < walls.arcs.length; i++) {
-      this.plotArc(centerTile.x, centerTile.y, walls.arcs[i]);
-    }
-    for (let i = 0; i < walls.lines.length; i++) {
-      var line = walls.lines[i];
-      this.plotLine(Math.round(line.startx), Math.round(line.starty),
-        Math.round(line.endx), Math.round(line.endy));
-    }
-  }
 }
 
-class Grid {
+class Labyrinth {
   constructor(rows) {
     this.size = rows;
     this.cells = 0;
@@ -279,11 +290,9 @@ class Grid {
     return this.get(row, col);
   }
 
-  getWalls(cellSz) {
+  getWalls(centerx, centery, cellSz) {
     var arcs = [];
     var lines = []
-    var centerx = centerTile.x;
-    var centery = centerTile.y;
 
     for (let row = 1; row < this.size; row++) {
       var theta = 2 * Math.PI / this.grid[row].length;
@@ -320,43 +329,21 @@ class Grid {
     return {arcs: arcs, lines: lines};
   }
 
-  draw(cellSz) {
-    var centerx = width/2;
-    var centery = height/2;
-
+  draw(centerx, centery, cellSz) {
     noFill();
     strokeWeight(2);
     stroke(255);
 
-    for (let row = 1; row < this.size; row++) {
-        var theta = 2 * Math.PI / this.grid[row].length;
-        var innerRadius = row * cellSz;
-        var outerRadius = (row + 1) * cellSz;
-
-      for (let col = 0; col < this.grid[row].length; ++col) {
-        var c = this.get(row, col);
-
-        var thetaCcw = col * theta;
-        var thetaCw = (col + 1) * theta;
-
-        // var ax = centerx + innerRadius * Math.cos(thetaCcw);
-        // var ay = centery + innerRadius * Math.sin(thetaCcw);
-        // var bx = centerx + outerRadius * Math.cos(thetaCcw);
-        // var by = centery + outerRadius * Math.sin(thetaCcw);
-        var cx = centerx + innerRadius * Math.cos(thetaCw);
-        var cy = centery + innerRadius * Math.sin(thetaCw);
-        var dx = centerx + outerRadius * Math.cos(thetaCw);
-        var dy = centery + outerRadius * Math.sin(thetaCw);
-
-        if (!c.linked[c.inward.id])
-          arc(centerx, centery, 2*innerRadius,
-            2*innerRadius, thetaCcw, thetaCw);
-        if (!c.linked[c.cw.id])
-          line(cx, cy, dx, dy);
-      }
+    var walls = this.getWalls(centerx, centery, cellSz);
+    for (let i = 0; i < walls.arcs.length; i++) {
+      var a = walls.arcs[i];
+      arc(centerx, centery, 2*a.r,
+        2*a.r, a.start, a.end);
     }
-
-    circle(centerx, centery, 2*this.size*cellSz);
+    for (let i = 0; i < walls.lines.length; i++) {
+      var l = walls.lines[i];
+      line(l.startx, l.starty, l.endx, l.endy);
+    }
   }
 }
 

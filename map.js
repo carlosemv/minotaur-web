@@ -39,14 +39,14 @@ class Tile {
         strokeWeight(0);
         fill(0);
     }
-    rect(x*tile.w, y*tile.h,
-      tile.w, tile.h, tile.c);
+    rect(x*tile.size, y*tile.size,
+      tile.size, tile.size, tile.c);
     if (this.occupied())
       this.entity.draw(x, y);
   }
 }
 
-class Map {
+class TileGrid {
   constructor(size) {
     this.size = size;
     this.floor = new Array(size*size);
