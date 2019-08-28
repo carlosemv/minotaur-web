@@ -11,6 +11,7 @@ var mapRadius = undefined; // pixels
 var layerSz = undefined; // pixels
 
 var map;
+var enemies;
 
 function preload() {
   // randomSeed(38);
@@ -50,7 +51,7 @@ function setup() {
 
   player = new Player(map);
 
-  enemies = new Array();
+  enemies = new Set();
   for (let i = 0; i < enemyRanks.length; i++) {
     var e = enemyRanks[i];
     enemySprites[e] = loadImage("assets/enemies/"+e+".png");
@@ -58,9 +59,8 @@ function setup() {
   
   enemySprites["minotaur"] = loadImage(
     "assets/enemies/minotaur.png");
-  var mino = new Enemy("minotaur");
-  enemies.push(mino);
-  map.insert(centerTile.x, centerTile.y, mino);
+  var mino = new Enemy(map, centerTile.x, centerTile.y, "minotaur");
+  enemies.add(mino);
 
   var maxTries = 100;
   var numEnemies = gridSz*gridSz*0.01;
@@ -74,9 +74,8 @@ function setup() {
     if (tries < maxTries) {
       var dist = 1 - map.get(x, y).distance;
       var rank = Math.floor(dist*enemyRanks.length);
-      var enemy = new Enemy(enemyRanks[rank]);
-      enemies.push(enemy);
-      map.insert(x, y, enemy);
+      var enemy = new Enemy(map, x, y, enemyRanks[rank]);
+      enemies.add(enemy);
     } else {
       console.log("unable to place enemy");
     }
@@ -85,9 +84,13 @@ function setup() {
 
 function draw() {
   background(0);
-  // map.draw(layerSz);
 
-  player.move();
+  if (player.move()) {
+    for (let e of enemies) {
+      var distance = Math.pow(player.x-e.x, 2)+Math.pow(player.y-e.y);
+      e.move(Math.sqrt(distance));
+    }
+  }
 
   var gridOrigin = {x:width-(tileSz*pov.w), y: 0}
 

@@ -2,7 +2,10 @@ var TileType = {"none":1, "basic":2, "wall":3};
 Object.freeze(TileType);
 
 class Tile {
-  constructor(type, distance) {
+  constructor(type, x, y, distance) {
+    this.x = x;
+    this.y = y;
+
     this.type = type;
     this.entity = null;
     this.distance = distance;
@@ -35,19 +38,16 @@ class Tile {
       case TileType.wall:
         fill(30+this.distance*100, 0, 0);
         stroke(10);
-        strokeWeight(2);
+        strokeWeight(1);
         break;
       default:
         noFill();
         noStroke();
     }
-    if (this.occupied()) {
-      fill(100, 100, 250);
-      rect(x, y, tile.size, tile.size, tile.c);
+
+    rect(x, y, tile.size, tile.size, tile.c);
+    if (this.occupied())
       this.entity.draw(x, y);
-    } else {
-      rect(x, y, tile.size, tile.size, tile.c);
-    }
   }
 }
 
@@ -56,7 +56,7 @@ class TileGrid {
     this.labyrinth = labyrinth;
     this.floor = new Array(gridSz*gridSz);
     this.size = gridSz;
-    this.void = new Tile(TileType.none, Infinity);
+    this.void = new Tile(TileType.none, -1, -1, Infinity);
 
     this.center = centerTile;
     this.r2 = (mapRadius/tileSz)*(mapRadius/tileSz);
@@ -121,7 +121,7 @@ class TileGrid {
     var k = this.key(x, y);
     var dist = Math.sqrt(Math.pow(this.center.x-x, 2)
       + Math.pow(this.center.y-y, 2)) / Math.sqrt(this.r2);
-    this.floor[k] = new Tile(type, dist);
+    this.floor[k] = new Tile(type, x, y, dist);
     if (!this.floor[k])
       throw "unable to create tile at " + x + ", " + y;
   }
@@ -131,8 +131,8 @@ class TileGrid {
     this.floor[k].type = type;
   }
 
-  insert(x, y, entity) {
-    this.get(x, y).insert(entity);
+  insert(entity) {
+    this.get(entity.x, entity.y).insert(entity);
   }
 
   evict(x, y) {
