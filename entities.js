@@ -1,3 +1,13 @@
+
+class Attributes {
+  constructor(hpmax, attack, damage, defense) {
+    this.hpMax = hpmax;
+    this.attack = attack;
+    this.damage = damage;
+    this.defense = defense;
+  }
+}
+
 class Enemy {
   constructor(type) {
     this.sprite = enemySprites[type];
@@ -6,8 +16,8 @@ class Enemy {
   draw(x, y) {
     // console.log("drawing enemy at ", x, " ", y);
     imageMode(CENTER);
-    image(this.sprite, x*tile.size+tile.hsize,
-      y*tile.size+tile.hsize, tile.size, tile.size);
+    image(this.sprite, x+tile.hsize,
+      y+tile.hsize, tile.size, tile.size);
   }
 }
 
@@ -15,9 +25,24 @@ class Player {
   constructor(map) {
     this.sprite = loadImage("assets/player.png");
     this.map = map;
-    this.x = 1;
-    this.y = 1;
+
+    var tries = 0, maxTries = 1000;
+    var r = Math.sqrt(map.r2) - layerSz/(2*tileSz);
+    do {
+      var theta = random(2*Math.PI);
+      this.x = Math.round(r*Math.sin(theta))+map.center.x;
+      this.y = Math.round(r*Math.cos(theta))+map.center.y;
+      tries++;
+    } while(!map.get(this.x, this.y).available() && tries < maxTries);
+    
+    if (tries >= maxTries)
+      throw "Unable to place player";
     this.map.insert(this.x, this.y, this);
+
+    this.level = 1;
+    this.xp = 0;
+    this.attrs = new Attributes(50, 1, 5, 1);
+    this.hp = this.attrs.hpMax;
   }
 
   move() {
@@ -48,9 +73,11 @@ class Player {
     this.map.insert(this.x, this.y, this);
   }
 
-  draw() {
+  draw(x, y) {
     imageMode(CENTER);
-    image(this.sprite, width/2, height/2,
+    // var x = pov.hw*tile.size+tile.hsize;
+    // var y = pov.hh*tile.size+tile.hsize;
+    image(this.sprite, x+tile.hsize, y+tile.hsize,
       tile.size, tile.size);
   }
 }
