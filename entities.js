@@ -1,4 +1,3 @@
-
 class Attributes {
   constructor(hpmax, attack, damage, defense) {
     this.hpMax = hpmax;
@@ -7,6 +6,27 @@ class Attributes {
     this.defense = defense;
   }
 }
+
+var enemyRanks = ["caveLizard", "giantBat", "gargantuanSpider",
+  "tartareanBeetle", "golem", "elemental", "cacoDaemon",
+  "lamia", "basilisk", "manticore", "keres"];
+
+var enemies = {
+  "caveLizard": new Attributes(10, 1, 2, 1),
+  "giantBat": new Attributes(5, 2, 1, 2),
+  "gargantuanSpider": new Attributes(20, 3, 5, 2),
+  "tartareanBeetle": new Attributes(30, 2, 5, 2),
+  "golem": new Attributes(40, 3, 6, 3),
+  "elemental": new Attributes(40, 4, 10, 2),
+  "cacoDaemon": new Attributes(30, 4, 10, 4),
+  "lamia": new Attributes(40, 6, 20, 4),
+  "basilisk": new Attributes(60, 6, 18, 5),
+  "manticore": new Attributes(70, 6, 20, 4),
+  "keres": new Attributes(60, 8, 20, 5),
+  "minotaur": new Attributes(110, 10, 25, 8)
+}
+
+var enemySprites = {};
 
 class Enemy {
   constructor(type) {

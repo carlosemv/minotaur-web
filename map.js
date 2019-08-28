@@ -1,3 +1,6 @@
+var TileType = {"none":1, "basic":2, "wall":3};
+Object.freeze(TileType);
+
 class Tile {
   constructor(type, distance) {
     this.type = type;
