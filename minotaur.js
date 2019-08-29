@@ -86,10 +86,9 @@ function draw() {
   background(0);
 
   if (player.move()) {
-    for (let e of enemies) {
-      var distance = Math.pow(player.x-e.x, 2)+Math.pow(player.y-e.y);
-      e.move(Math.sqrt(distance));
-    }
+    let playerPos = {x: player.x, y: player.y};
+    for (let e of enemies)
+      e.move(playerPos);
   }
 
   var gridOrigin = {x:width-(tileSz*pov.w), y: 0}
