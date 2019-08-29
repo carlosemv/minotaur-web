@@ -14,7 +14,7 @@ var map;
 var enemies;
 
 function preload() {
-  // randomSeed(38);
+  randomSeed(49);
 }
 
 // function keyPressed() {
@@ -49,6 +49,7 @@ function setup() {
   gen.run();
   map = new TileGrid(labyrinth);
 
+  nullSprite = loadImage("assets/null.png");
   player = new Player(map);
 
   enemies = new Set();

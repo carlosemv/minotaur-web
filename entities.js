@@ -19,6 +19,9 @@ class Entity {
     this.y = y;
     this.map = map;
     map.insert(this);
+
+    this.name = null;
+    this.sprite = nullSprite;
   }
 
   draw(x, y) {
@@ -33,6 +36,9 @@ class Entity {
   }
 
   attack(target) {
+    if (this.name === target.name)
+      return;
+
     var attRoll = Math.ceil(random(3));
     var defRoll = Math.ceil(random(3));
     if (this.att + attRoll >= target.def + defRoll) {
@@ -47,6 +53,10 @@ class Entity {
 
   death() {
     throw "Not implemented";
+  }
+
+  pos() {
+    return {x: this.x, y: this.y};
   }
 
   hit(dmg) {
@@ -64,6 +74,7 @@ class Entity {
 class Enemy extends Entity {
   constructor(map, x, y, type) {
     super(enemyAttrs[type], x, y, map);
+    this.type = type;
     this.name = enemyNames[type];
     this.sprite = enemySprites[type];
     this.aggro = false;
@@ -77,13 +88,19 @@ class Enemy extends Entity {
       case "giantBat":
         [this.x, this.y] = this.randomMove(playerPos);
         break;
-      // case "golem":
-      // case "manticore":
-      //   aggroMove();
-      //   break;
+      case "caveLizard":
+      case "gargantuanSpider":
+      case "tartareanBeetle":
+      case "golem":
+        [this.x, this.y] = this.dumbMove(playerPos);
+        break;
+      case "lamia":
+      case "basilisk":
+      case "manticore":
+        [this.x, this.y] = this.selfPreservingMove(playerPos);
+        break;
       default:
-        // rangeMove();
-        [this.x, this.y] = this.randomMove(playerPos);
+        [this.x, this.y] = this.relentlessMove(playerPos);
     }
 
     if (this.x == ox && this.y == oy)
@@ -108,6 +125,49 @@ class Enemy extends Entity {
 
     this.map.evict(ox, oy);
     this.map.insert(this);
+  }
+
+  dumbMove(playerPos) {
+    var d = this.distance(playerPos.x, playerPos.y);
+    if (d > 6)
+      return [this.x, this.y];
+
+    var dx = Math.round((playerPos.x-this.x)/d);
+    var dy = Math.round((playerPos.y-this.y)/d);
+    return [this.x+dx, this.y+dy];
+  }
+
+  relentlessMove(playerPos) {
+    var d = this.distance(playerPos.x, playerPos.y);
+    if (d > 6)
+      return [this.x, this.y];
+
+    return this.smartMove(playerPos);
+  }
+
+  smartMove(playerPos) {
+    var path = this.map.astar.search(this.pos(), playerPos);
+    if (path && path.length > 1)
+      return [path[1].x, path[1].y];
+    return [this.x, this.y];
+  }
+
+  selfPreservingMove(playerPos) {
+    var d = this.distance(playerPos.x, playerPos.y);
+    if (d > 6)
+      return [this.x, this.y];
+
+    if (this.hp <= this.hpMax/2)
+      return this.retreatMove(playerPos);
+    else
+      return this.smartMove(playerPos);
+  }
+
+  retreatMove(playerPos) {
+    var d = this.distance(playerPos.x, playerPos.y);
+    var dx = Math.round((this.x-playerPos.x)/d);
+    var dy = Math.round((this.y-playerPos.y)/d);
+    return [this.x+dx, this.y+dy];
   }
 
   randomMove(playerPos) {
@@ -228,3 +288,4 @@ var enemyNames = {
 };
 
 var enemySprites = {};
+var nullSprite;

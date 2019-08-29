@@ -79,6 +79,8 @@ class TileGrid {
       this.plotLine(Math.round(line.startx), Math.round(line.starty),
         Math.round(line.endx), Math.round(line.endy), TileType.wall);
     }
+
+    this.astar = new Astar(this);
   }
 
   draw(cellSz) {
@@ -115,6 +117,22 @@ class TileGrid {
       return t;
     else
       return this.void;
+  }
+
+  neighbors(pos, tgtPos) {
+    var ns = [];
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        if (i == j && i == 0)
+          continue;
+
+        if (pos.x+i === tgtPos.x && pos.y+j === tgtPos.y)
+          ns.push(tgtPos);
+        else if (this.get(pos.x+i, pos.y+j).available())
+          ns.push({x:pos.x+i, y:pos.y+j});
+      }
+    }
+    return ns;
   }
 
   createTile(x, y, type) {
