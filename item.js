@@ -17,16 +17,16 @@ var gods = ["Zeus", "Hera", "Poseidon", "Demeter", "Athena",
 
 class Item {
   constructor(map, x, y, type, subtype, rank) {
+    this.type = type;
+
     this.id = type;
     if (subtype)
       this.id += "/"+subtype;
     this.id += "/"+rank;
     this.sprite = itemSprites[this.id];
 
-    this.x = x;
-    this.y = y;
     this.map = map;
-    map.place(this);
+    this.place(x, y);
 
     this.name = rankNames[rank]+" ";
     if (subtype)
@@ -56,6 +56,12 @@ class Item {
       this.def = rank*Math.ceil(random(3));
 
     this.equipped = false;
+  }
+
+  place(x, y) {
+    this.x = x;
+    this.y = y;
+    this.map.place(this);
   }
 
   draw(x, y) {

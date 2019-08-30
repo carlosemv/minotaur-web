@@ -268,15 +268,54 @@ class Player extends Entity {
   }
 
   equip(item) {
+    var idx = player.pack.items.indexOf(item);
+    if (idx == -1)
+      throw "Item "+item+" not in player inventory";
+
+    for (let i = 0; i < this.pack.equipped.length; i++) {
+      var equipment = this.pack.equipped[i];
+      if (equipment.type === item.type)
+        this.unequip(equipment);
+    }
+
+    this.pack.items.splice(idx, 1);
+    this.pack.equipped.push(item);
+
+    item.equipped = true;
     this.att += item.att;
     this.def += item.def;
     this.damage += item.damage;
+    return true;
   }
 
   unequip(item) {
+    var idx = player.pack.equipped.indexOf(item);
+    if (idx == -1)
+      throw "Item "+item+" not in player equipment";
+
+    this.pack.equipped.splice(idx, 1);
+    this.pack.items.push(item);
+
+    item.equipped = false;
     this.att -= item.att;
     this.def -= item.def;
     this.damage -= item.damage;
+    return true;
+  }
+
+  pickUp(item) {
+    this.pack.pickUp(item);
+  }
+
+  drop(item) {
+    if (item.equipped)
+      this.unequip(item);
+
+    var idx = player.pack.items.indexOf(item);
+    if (idx == -1)
+      throw "Item "+item+" not in player inventory";
+    this.pack.items.splice(idx, 1);
+    item.place(this.x, this.y);
   }
 
   move() {
@@ -331,10 +370,6 @@ class Player extends Entity {
     this.map.evict(ox, oy);
     this.map.insert(this);
     return true;
-  }
-
-  pickUp(item) {
-    this.pack.pickUp(item);
   }
 
   death() {

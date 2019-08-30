@@ -1,5 +1,8 @@
 var statsOrigin, statsWidth;
 var lineHeight = 15;
+var menuItem = null;
+var equipIdx = null, invIdx = null;
+
 function drawLog() {
   var logHeight = res.h/5;
 
@@ -96,10 +99,20 @@ function drawInventory() {
   strokeWeight(2);
   line(statsOrigin.x, statsOrigin.y,
     statsOrigin.x+statsWidth, statsOrigin.y);
+
   strokeWeight(0);
+  statsOrigin.y += lineHeight;
+  text("Equipment:", statsOrigin.x, statsOrigin.y);
 
   stroke(100, 100, 0);
   for (let i = 0; i < player.pack.equipped.length; i++) {
+    if (i == equipIdx) {
+      fill(255, 30, 30, 150);
+      rect(statsOrigin.x, statsOrigin.y+lineHeight/2,
+        statsWidth, lineHeight);
+
+      fill(255);
+    }
     var item = player.pack.equipped[i];
     statsOrigin.y += lineHeight;
     var id = i+1;
@@ -111,9 +124,19 @@ function drawInventory() {
   strokeWeight(2);
   line(statsOrigin.x, statsOrigin.y,
     statsOrigin.x+statsWidth, statsOrigin.y);
+
   strokeWeight(0);
+  statsOrigin.y += lineHeight;
+  text("Inventory:", statsOrigin.x, statsOrigin.y);
 
   for (let i = 0; i < player.pack.items.length; i++) {
+    if (i == invIdx) {
+      fill(255, 30, 30, 150);
+      rect(statsOrigin.x, statsOrigin.y+lineHeight/2,
+        statsWidth, lineHeight);
+
+      fill(255);
+    }
     var item = player.pack.items[i];
     statsOrigin.y += lineHeight;
     var id = String.fromCharCode("a".charCodeAt(0)+i);
@@ -134,4 +157,62 @@ function drawHelpBar() {
   textSize(18);
   textAlign(CENTER, CENTER);
   text(barText, center.x, center.y);
+}
+
+function itemMenu() {
+  fill(0);
+  stroke(255);
+  strokeWeight(1);
+  rect(res.w/3, res.h/3, res.w/3, 8*lineHeight);
+
+  var menuLine = res.h/3 + lineHeight;
+  fill(255);
+  noStroke();
+  textAlign(CENTER, TOP);
+
+  text(menuItem.name, res.w/2, menuLine);
+  menuLine += lineHeight;
+
+  var prevItem = {att: 0, damage: 0, def: 0};
+  if (!menuItem.equipped) {
+    for (let i = 0; i < player.pack.equipped.length; i++) {
+      var equipment = player.pack.equipped[i];
+      if (equipment.type === menuItem.type) {
+        prevItem = equipment;
+        break;
+      }
+    }
+  }
+
+  let attText = "Attack: "+menuItem.att;
+  if (!menuItem.equipped) {
+    attText += " (";
+    attText += prevItem.att <= menuItem.att ? "+" : "-";
+    attText += Math.abs(menuItem.att-prevItem.att)+")";
+  }
+  text(attText, res.w/2, menuLine);
+  menuLine += lineHeight;
+
+  let damageText = "Damage: "+menuItem.damage;
+  if (!menuItem.equipped) {
+    damageText += " (";
+    damageText += prevItem.damage <= menuItem.damage ? "+" : "-";
+    damageText += Math.abs(menuItem.damage-prevItem.damage)+")";
+  }
+  text(damageText, res.w/2, menuLine);
+  menuLine += lineHeight;
+
+  let defText = "Defense: "+menuItem.def;
+  if (!menuItem.equipped) {
+    defText += " (";
+    defText += prevItem.def <= menuItem.def ? "+" : "-";
+    defText += Math.abs(menuItem.def-prevItem.def)+")";
+  }
+  text(defText, res.w/2, menuLine);
+  menuLine += 2*lineHeight;
+
+  if (menuItem.equipped)
+    text("(e) Unequip\t\t(d) Drop", res.w/2, menuLine);
+  else
+    text("(e) Equip\t\t(d) Drop", res.w/2, menuLine);
 }
