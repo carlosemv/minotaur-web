@@ -1,4 +1,4 @@
-var pov = {w: 17, h: 17}; // tiles
+var pov = {w: 23, h: 17}; // tiles
 var gridSz = 161; // tiles
 var centerTile = {x: Math.floor(gridSz/2), y: Math.floor(gridSz/2)};
 var res = undefined; // pixels
@@ -12,6 +12,7 @@ var layerSz = undefined; // pixels
 
 var map;
 var enemies;
+var logs = [];
 
 function preload() {
   randomSeed(49);
@@ -22,7 +23,7 @@ function preload() {
 // }
 
 function setup() {
-  res = {w: 600, h: 600};
+  res = {w: 960, h: 540};
   // if (res.w / pov.w != res.h / pov.h) {
   //   if (res.w/pov.w < res.h/pov.h)
   //     tileSz = 
@@ -32,7 +33,8 @@ function setup() {
   if (pov.w % 2 == 0 || pov.h % 2 == 0)
     throw "Camera has no center tile";
 
-  tileSz = Math.min(res.w/pov.w, res.h/pov.h);
+  var mapRes = {w: res.w*0.75, h: res.h*0.95};
+  tileSz = Math.min(mapRes.w/pov.w, mapRes.h/pov.h);
   mapSz = gridSz * tileSz;
   mapRadius = 0.99 * mapSz / 2;
   layerSz = mapRadius / layers;
@@ -50,7 +52,7 @@ function setup() {
   map = new TileGrid(labyrinth);
 
   nullSprite = loadImage("assets/null.png");
-  player = new Player(map);
+  player = new Player(map, logs);
 
   setupEnemies();
   setupItems();
@@ -75,6 +77,41 @@ function draw() {
       t.draw(x, y);
     }
   }
+
+  drawHelpBar();
+  drawLog();
+}
+
+function drawLog() {
+  var origin = {x: res.w*0.01, y: res.h*0.02};
+  textAlign(LEFT, TOP);
+  
+  fill(255);
+  noStroke();
+  textSize(15);
+  var logsText = "";
+
+  var numLogs = 6;
+  var start = Math.max(logs.length-numLogs, 0);
+  for (let i = start; i < logs.length; i++)
+    logsText += logs[i] + "\n";
+  text(logsText, origin.x, origin.y,
+    res.w-(tileSz*pov.w+origin.x), res.h/5);
+}
+
+function drawHelpBar() {
+  var origin = {x:Math.round(res.w*0.05), y:tileSz*pov.h};
+  // rect(origin.x, origin.y, res.w-2*origin.x, res.h-origin.y);
+  var center = {x: res.w/2, y: origin.y+(res.h-origin.y)/2};
+
+  var barText = "(Esc) Menu\t\t(i) Inventory\t\t(e) "
+    + "Equipment\t\t(z) Rest\t\t(t) Talk\t\t(?) Help";
+
+  fill(255);
+  noStroke();
+  textSize(18);
+  textAlign(CENTER, CENTER);
+  text(barText, center.x, center.y);
 }
 
 function setupEnemies() {
@@ -86,7 +123,7 @@ function setupEnemies() {
   
   enemySprites["minotaur"] = loadImage(
     "assets/enemies/minotaur.png");
-  var mino = new Enemy(map, centerTile.x, centerTile.y, "minotaur");
+  var mino = new Enemy(map, logs, centerTile.x, centerTile.y, "minotaur");
   enemies.add(mino);
 
   var maxTries = 100;
@@ -101,7 +138,7 @@ function setupEnemies() {
     if (tries < maxTries) {
       var dist = 1 - map.get(x, y).distance;
       var rank = Math.floor(dist*enemyRanks.length);
-      var enemy = new Enemy(map, x, y, enemyRanks[rank]);
+      var enemy = new Enemy(map, logs, x, y, enemyRanks[rank]);
       enemies.add(enemy);
     } else {
       console.log("unable to place enemy");

@@ -8,7 +8,7 @@ class Attributes {
 }
 
 class Entity {
-  constructor(attrs, x, y, map) {
+  constructor(attrs, x, y, map, logs) {
     this.hpMax = attrs.hpMax;
     this.att = attrs.att;
     this.damage = attrs.damage;
@@ -19,6 +19,8 @@ class Entity {
     this.y = y;
     this.map = map;
     map.insert(this);
+
+    this.logs = logs;
 
     this.name = null;
     this.sprite = nullSprite;
@@ -42,12 +44,12 @@ class Entity {
     var attRoll = Math.ceil(random(3));
     var defRoll = Math.ceil(random(3));
     if (this.att + attRoll >= target.def + defRoll) {
-      console.log(this.name+" hit "+target.name);
+      this.logs.push(this.name+" hit "+target.name);
       var dmgRange = Math.ceil(0.1*this.damage);
       var dmgRoll = Math.floor(random(2*dmgRange+1)) - dmgRange;
       target.hit(this.damage+dmgRoll);
     } else {
-      console.log(this.name+" missed "+target.name);
+      this.logs.push(this.name+" missed "+target.name);
     }
   }
 
@@ -72,8 +74,8 @@ class Entity {
 }
 
 class Enemy extends Entity {
-  constructor(map, x, y, type) {
-    super(enemyAttrs[type], x, y, map);
+  constructor(map, logs, x, y, type) {
+    super(enemyAttrs[type], x, y, map, logs);
     this.type = type;
     this.name = enemyNames[type];
     this.sprite = enemySprites[type];
@@ -182,7 +184,7 @@ class Enemy extends Entity {
   death() {
     this.map.evict(this.x, this.y);
     enemies.delete(this);
-    console.log(this.name+" perished");
+    this.logs.push(this.name+" perished");
   }
 }
 
@@ -199,7 +201,7 @@ class Inventory {
 }
 
 class Player extends Entity {
-  constructor(map) {
+  constructor(map, logs) {
     var tries = 0, maxTries = 1000;
     var r = Math.sqrt(map.r2) - layerSz/(2*tileSz);
     var x, y;
@@ -214,7 +216,7 @@ class Player extends Entity {
       throw "Unable to place player";
 
     var attrs = new Attributes(50, 2, 5, 2);
-    super(attrs, x, y, map);
+    super(attrs, x, y, map, logs);
 
     this.sprite = loadImage("assets/player.png");
     this.name = "Theseus";
@@ -275,7 +277,7 @@ class Player extends Entity {
 
     if (tgt.hasItem()) {
       for (let i = 0; i < tgt.items.length; i++) {
-        console.log("picked up "+tgt.items[i].id);
+        this.logs.push("picked up "+tgt.items[i].id);
         this.pickUp(tgt.items[i]);
       }
       tgt.clearItems();
@@ -292,7 +294,7 @@ class Player extends Entity {
   }
 
   death() {
-    console.log("player death");
+    this.logs.push("player death");
   }
 }
 
