@@ -52,6 +52,32 @@ function setup() {
   nullSprite = loadImage("assets/null.png");
   player = new Player(map);
 
+  setupEnemies();
+  setupItems();
+}
+
+function draw() {
+  background(0);
+
+  if (player.move()) {
+    let playerPos = {x: player.x, y: player.y};
+    for (let e of enemies)
+      e.move(playerPos);
+  }
+
+  var gridOrigin = {x:width-(tileSz*pov.w), y: 0}
+
+  for (var dx = -pov.hw; dx <= pov.hw; dx++) {
+    for (var dy = -pov.hh; dy <= pov.hh; dy++) {
+      var t = map.get(player.x+dx, player.y+dy);
+      var x = gridOrigin.x + tile.size*(dx+pov.hw);
+      var y = gridOrigin.y + tile.size*(dy+pov.hh);
+      t.draw(x, y);
+    }
+  }
+}
+
+function setupEnemies() {
   enemies = new Set();
   for (let i = 0; i < enemyRanks.length; i++) {
     var e = enemyRanks[i];
@@ -83,23 +109,48 @@ function setup() {
   }
 }
 
-function draw() {
-  background(0);
-
-  if (player.move()) {
-    let playerPos = {x: player.x, y: player.y};
-    for (let e of enemies)
-      e.move(playerPos);
+function setupItems() {
+  for (let i = 0; i < itemTypes.length; i++) {
+    var t = itemTypes[i];
+    if (t == "weapons") {
+      for (let j = 0; j < weaponTypes.length; j++) {
+        for (let rank = 1; rank <= 3; rank++) {
+          var name = t+"/"+weaponTypes[j]+"/"+rank;
+          itemSprites[name] = loadImage("assets/items/"+name+".png");
+        }
+      }
+    } else {
+      for (let rank = 1; rank <= 3; rank++) {
+        var name = t+"/"+rank;
+        itemSprites[name] = loadImage("assets/items/"+name+".png");
+      }
+    }
   }
 
-  var gridOrigin = {x:width-(tileSz*pov.w), y: 0}
-
-  for (var dx = -pov.hw; dx <= pov.hw; dx++) {
-    for (var dy = -pov.hh; dy <= pov.hh; dy++) {
-      var t = map.get(player.x+dx, player.y+dy);
-      var x = gridOrigin.x + tile.size*(dx+pov.hw);
-      var y = gridOrigin.y + tile.size*(dy+pov.hh);
-      t.draw(x, y);
+  var maxTries = 100;
+  var numItems = Math.ceil(gridSz*gridSz*0.005);
+  for (var i = 0; i < numItems; i++) {
+    var tries = 0;
+    do {
+      var x = Math.floor(random(gridSz));
+      var y = Math.floor(random(gridSz));
+      tries++;
+    } while(!map.get(x, y).available() && tries < maxTries);
+    if (tries < maxTries) {
+      var dist = 1 - map.get(x, y).distance;
+      var rank = 1;
+      if (dist > 0.8)
+        rank = 3;
+      else if (dist > 0.5)
+        rank = 2;
+  
+      var type = itemTypes[Math.floor(random(itemTypes.length))];
+      var subtype = null;
+      if (type == "weapons")
+        subtype = weaponTypes[Math.floor(random(weaponTypes.length))];
+      var item = new Item(map, x, y, type, subtype, rank);      
+    } else {
+      console.log("unable to place item");
     }
   }
 }

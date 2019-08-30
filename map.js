@@ -8,7 +8,12 @@ class Tile {
 
     this.type = type;
     this.entity = null;
+    this.items = [];
     this.distance = distance;
+  }
+
+  hasItem() {
+    return !this.items.empty;
   }
 
   occupied() {
@@ -23,8 +28,16 @@ class Tile {
     this.entity = entity;
   }
 
+  place(item) {
+    this.items.push(item);
+  }
+
   evict() {
     this.entity = null;
+  }
+
+  clearItems() {
+    this.items = [];
   }
 
   draw(x, y) {
@@ -46,6 +59,10 @@ class Tile {
     }
 
     rect(x, y, tile.size, tile.size, tile.c);
+    if (this.hasItem()) {
+      for (let i = 0; i < this.items.length; i++)
+        this.items[i].draw(x, y);
+    }
     if (this.occupied())
       this.entity.draw(x, y);
   }
@@ -151,6 +168,10 @@ class TileGrid {
 
   insert(entity) {
     this.get(entity.x, entity.y).insert(entity);
+  }
+
+  place(item) {
+    this.get(item.x, item.y).place(item);
   }
 
   evict(x, y) {

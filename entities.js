@@ -186,6 +186,18 @@ class Enemy extends Entity {
   }
 }
 
+class Inventory {
+  constructor() {
+    this.items = [];
+    this.equipped = new WeakMap();
+  }
+
+  pickUp(item) {
+    this.items.push(item);
+    this.equipped[item] = false;
+  }
+}
+
 class Player extends Entity {
   constructor(map) {
     var tries = 0, maxTries = 1000;
@@ -208,11 +220,28 @@ class Player extends Entity {
     this.name = "Theseus";
     this.level = 1;
     this.xp = 0;
+    this.rested = 0;
+
+    this.pack = new Inventory();
+  }
+
+  rest() {
+    this.rested += 1;
+    if (this.rested > 3) {
+      this.rested = 0;
+      this.hp += 1;
+    }
   }
 
   move() {
     var ox = this.x;
     var oy = this.y;
+
+
+    if(keyWentDown(12)) {
+      this.rest();
+      return true;
+    }
 
     if (keyWentDown(35) || keyWentDown(36) || keyWentDown(37))
       this.x -= 1;
@@ -226,7 +255,8 @@ class Player extends Entity {
     if (this.x == ox && this.y == oy)
       return false;
 
-    if (this.map.get(this.x, this.y).type != TileType.basic
+    var tgt = this.map.get(this.x, this.y);
+    if (tgt.type != TileType.basic
         || this.map.isOut(this.x, this.y)) {
       this.x = ox;
       this.y = oy;
@@ -234,7 +264,7 @@ class Player extends Entity {
       return false;
     }
 
-    if (map.get(this.x, this.y).occupied()) {
+    if (tgt.occupied()) {
       var tgt = map.get(this.x, this.y).entity;
       this.attack(tgt);
 
@@ -243,9 +273,22 @@ class Player extends Entity {
       return true;
     }
 
+    if (tgt.hasItem()) {
+      for (let i = 0; i < tgt.items.length; i++) {
+        console.log("picked up "+tgt.items[i].id);
+        this.pickUp(tgt.items[i]);
+      }
+      tgt.clearItems();
+    }
+
+    this.rest();
     this.map.evict(ox, oy);
     this.map.insert(this);
     return true;
+  }
+
+  pickUp(item) {
+    this.pack.pickUp(item);
   }
 
   death() {
