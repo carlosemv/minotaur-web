@@ -80,6 +80,7 @@ function draw() {
 
   drawHelpBar();
   drawLog();
+  drawStats();
 }
 
 function drawLog() {
@@ -97,6 +98,64 @@ function drawLog() {
     logsText += logs[i] + "\n";
   text(logsText, origin.x, origin.y,
     res.w-(tileSz*pov.w+origin.x), res.h/5);
+}
+
+function drawStats() {
+  var lineHeight = 15;
+  var origin = {x: res.w*0.01, y: res.h/5+res.h*0.03};
+  var statsWidth = res.w-(tileSz*pov.w+2*origin.x);
+
+  // draw health bar
+  stroke(255);
+  noFill();
+  rect(origin.x, origin.y, statsWidth, lineHeight);
+
+  noStroke();
+  var health = player.hp/player.hpMax;
+  if (health <= 0.2)
+    fill(90, 0, 0);
+  else
+    fill(0, 90, 0);
+  rect(origin.x, origin.y, statsWidth*health, lineHeight);
+
+  fill(255);
+  textAlign(CENTER, CENTER);
+  text("Health: "+player.hp+" / "+player.hpMax,
+    origin.x+statsWidth/2, origin.y+lineHeight/2);
+
+  // draw xp bar
+  origin.y += 1.5*lineHeight;
+  stroke(255);
+  noFill();
+  rect(origin.x, origin.y, statsWidth, lineHeight);
+
+  noStroke();
+  var progress = player.xp/player.nextLevel();
+  fill(0, 0, 90);
+  rect(origin.x, origin.y, statsWidth*progress, lineHeight);
+
+  fill(255);
+  textAlign(CENTER, CENTER);
+  text("Xp: "+player.xp+" / "+player.nextLevel(),
+    origin.x+statsWidth/2, origin.y+lineHeight/2);
+
+  // draw combat stats
+  origin.y += 1.5*lineHeight;
+  textAlign(LEFT, CENTER);
+  text("Level: "+player.level, origin.x, origin.y+lineHeight/2);
+
+  origin.y += lineHeight;
+  textAlign(LEFT, CENTER);
+  text("Attack: "+player.att, origin.x, origin.y+lineHeight/2);
+
+  origin.y += lineHeight;
+  textAlign(LEFT, CENTER);
+  text("Damage: "+player.damage, origin.x, origin.y+lineHeight/2);
+
+  origin.y += lineHeight;
+  textAlign(LEFT, CENTER);
+  text("Defense: "+player.def, origin.x, origin.y+lineHeight/2);
+
 }
 
 function drawHelpBar() {
