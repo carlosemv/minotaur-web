@@ -233,13 +233,12 @@ class Enemy extends Entity {
 
 class Inventory {
   constructor() {
+    this.equipped = [];
     this.items = [];
-    this.equipped = new WeakMap();
   }
 
   pickUp(item) {
     this.items.push(item);
-    this.equipped[item] = false;
   }
 }
 
@@ -266,6 +265,18 @@ class Player extends Entity {
     this.rested = 0;
 
     this.pack = new Inventory();
+  }
+
+  equip(item) {
+    this.att += item.att;
+    this.def += item.def;
+    this.damage += item.damage;
+  }
+
+  unequip(item) {
+    this.att -= item.att;
+    this.def -= item.def;
+    this.damage -= item.damage;
   }
 
   move() {

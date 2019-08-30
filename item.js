@@ -43,6 +43,19 @@ class Item {
       this.name += gods[Math.floor(random(gods.length))];
     else
       this.name += "Void";
+
+    this.att = 0;
+    this.def = 0;
+    this.damage = 0;
+
+    if (type == "weapons" || type == "necklaces" || type == "shoes")
+      this.att = rank*Math.ceil(random(3));
+    if (type == "weapons" || type == "necklaces" || type == "helms")
+      this.damage = rank*Math.ceil(random(4));
+    if (type == "helms" || type == "armors")
+      this.def = rank*Math.ceil(random(3));
+
+    this.equipped = false;
   }
 
   draw(x, y) {

@@ -10,12 +10,15 @@ var layers = 9;
 var mapRadius = undefined; // pixels
 var layerSz = undefined; // pixels
 
+var seed;
 var map;
 var enemies;
 var logs = [];
 
 function preload() {
-  randomSeed(49);
+  seed = Math.floor(random(100000000));
+  randomSeed(seed);
+  logs.push("Games start, seed: "+seed);
 }
 
 // function keyPressed() {
@@ -24,12 +27,6 @@ function preload() {
 
 function setup() {
   res = {w: 960, h: 540};
-  // if (res.w / pov.w != res.h / pov.h) {
-  //   if (res.w/pov.w < res.h/pov.h)
-  //     tileSz = 
-  //   tileSz = Math.min(res.w/pov.w, )
-  //   // throw "Invalid resolution proportions";
-  // }
   if (pov.w % 2 == 0 || pov.h % 2 == 0)
     throw "Camera has no center tile";
 
@@ -44,6 +41,9 @@ function setup() {
   pov.hw = Math.floor(pov.w/2);
   pov.hh = Math.floor(pov.h/2);
 
+  statsOrigin = {x: res.w*0.01, y: 0};
+  statsWidth = res.w-(tileSz*pov.w+2*statsOrigin.x);
+
   createCanvas(res.w, res.h);
 
   labyrinth = new Labyrinth(layers);
@@ -56,6 +56,12 @@ function setup() {
 
   setupEnemies();
   setupItems();
+}
+
+function itemInfo() {
+  fill(0);
+  noStroke();
+  rect(res.w/3, res.h/3, 100, 100);
 }
 
 function draw() {
@@ -78,99 +84,42 @@ function draw() {
     }
   }
 
+  // gui
   drawHelpBar();
   drawLog();
   drawStats();
-}
+  drawInventory();
 
-function drawLog() {
-  var origin = {x: res.w*0.01, y: res.h*0.02};
-  textAlign(LEFT, TOP);
-  
-  fill(255);
-  noStroke();
-  textSize(15);
-  var logsText = "";
+  var firstNum = 49;
+  for (let i = 0; i < 9; i++) {
+    if (keyWentDown(firstNum+i) && i < player.pack.equipped.length) {
+      var item = player.pack.equipped[i];
+      if (keyIsDown(16)) {
+        item = player.pack.equipped.splice(i,1)[0];
+        player.unequip(item);
+        player.pack.items.push(item);
+      } else {
+        // itemInfo();
+        // console.log("info "+(i+1));
+      }
+    }
+  }
 
-  var numLogs = 6;
-  var start = Math.max(logs.length-numLogs, 0);
-  for (let i = start; i < logs.length; i++)
-    logsText += logs[i] + "\n";
-  text(logsText, origin.x, origin.y,
-    res.w-(tileSz*pov.w+origin.x), res.h/5);
-}
-
-function drawStats() {
-  var lineHeight = 15;
-  var origin = {x: res.w*0.01, y: res.h/5+res.h*0.03};
-  var statsWidth = res.w-(tileSz*pov.w+2*origin.x);
-
-  // draw health bar
-  stroke(255);
-  noFill();
-  rect(origin.x, origin.y, statsWidth, lineHeight);
-
-  noStroke();
-  var health = player.hp/player.hpMax;
-  if (health <= 0.2)
-    fill(90, 0, 0);
-  else
-    fill(0, 90, 0);
-  rect(origin.x, origin.y, statsWidth*health, lineHeight);
-
-  fill(255);
-  textAlign(CENTER, CENTER);
-  text("Health: "+player.hp+" / "+player.hpMax,
-    origin.x+statsWidth/2, origin.y+lineHeight/2);
-
-  // draw xp bar
-  origin.y += 1.5*lineHeight;
-  stroke(255);
-  noFill();
-  rect(origin.x, origin.y, statsWidth, lineHeight);
-
-  noStroke();
-  var progress = player.xp/player.nextLevel();
-  fill(0, 0, 90);
-  rect(origin.x, origin.y, statsWidth*progress, lineHeight);
-
-  fill(255);
-  textAlign(CENTER, CENTER);
-  text("Xp: "+player.xp+" / "+player.nextLevel(),
-    origin.x+statsWidth/2, origin.y+lineHeight/2);
-
-  // draw combat stats
-  origin.y += 1.5*lineHeight;
-  textAlign(LEFT, CENTER);
-  text("Level: "+player.level, origin.x, origin.y+lineHeight/2);
-
-  origin.y += lineHeight;
-  textAlign(LEFT, CENTER);
-  text("Attack: "+player.att, origin.x, origin.y+lineHeight/2);
-
-  origin.y += lineHeight;
-  textAlign(LEFT, CENTER);
-  text("Damage: "+player.damage, origin.x, origin.y+lineHeight/2);
-
-  origin.y += lineHeight;
-  textAlign(LEFT, CENTER);
-  text("Defense: "+player.def, origin.x, origin.y+lineHeight/2);
-
-}
-
-function drawHelpBar() {
-  var origin = {x:Math.round(res.w*0.05), y:tileSz*pov.h};
-  // rect(origin.x, origin.y, res.w-2*origin.x, res.h-origin.y);
-  var center = {x: res.w/2, y: origin.y+(res.h-origin.y)/2};
-
-  var barText = "(Esc) Menu\t\t(i) Inventory\t\t(e) "
-    + "Equipment\t\t(z) Rest\t\t(t) Talk\t\t(?) Help";
-
-  fill(255);
-  noStroke();
-  textSize(18);
-  textAlign(CENTER, CENTER);
-  text(barText, center.x, center.y);
+  var firstLetter = 65;
+  for (let i = 0; i < 26; i++) {
+    if (keyWentDown(firstLetter+i) && i < player.pack.items.length) {
+      var id = String.fromCharCode("a".charCodeAt(0)+i);
+      var item = player.pack.items[i];
+      if (keyIsDown(16)) {
+        item = player.pack.items.splice(i,1)[0];
+        player.equip(item);
+        player.pack.equipped.push(item);
+      } else {
+        // itemInfo();
+        // console.log("info "+id);
+      }
+    }
+  }
 }
 
 function setupEnemies() {
