@@ -14,6 +14,10 @@ class Entity {
     this.damage = attrs.damage;
     this.def = attrs.def;
     this.hp = this.hpMax;
+    this.rested = 0;
+
+    this.level = 1;
+    this.xp = 0;
 
     this.x = x;
     this.y = y;
@@ -47,7 +51,9 @@ class Entity {
       this.logs.push(this.name+" hit "+target.name);
       var dmgRange = Math.ceil(0.1*this.damage);
       var dmgRoll = Math.floor(random(2*dmgRange+1)) - dmgRange;
-      target.hit(this.damage+dmgRoll);
+      var killed = target.hit(this.damage+dmgRoll);
+      if (killed)
+        this.gainXp(target.xpValue());
     } else {
       this.logs.push(this.name+" missed "+target.name);
     }
@@ -61,10 +67,44 @@ class Entity {
     return {x: this.x, y: this.y};
   }
 
+  rest() {
+    if (this.hp == this.hpMax)
+      return;
+
+    this.rested += 1;
+    if (this.rested > 3) {
+      this.rested = 0;
+      this.hp++;
+    }
+  }
+
+  gainXp(xp) {
+    this.xp += xp;
+    if (this.xp > this.nextLevel()) {
+      this.xp = 0;
+      this.level++;
+      this.att++;
+      this.damage++;
+      this.def++;
+    }
+  }
+
+  nextLevel() {
+    return 3+this.level*2;
+  }
+
+  xpValue() {
+    return Math.ceil((this.att+this.damage+this.def)/2);
+  }
+
   hit(dmg) {
     this.hp -= dmg;
-    if (this.hp <= 0)
+    if (this.hp <= 0) {
       this.death();
+      return true;
+    }
+
+    return false;
   }
 
   distance(x, y) {
@@ -105,8 +145,10 @@ class Enemy extends Entity {
         [this.x, this.y] = this.relentlessMove(playerPos);
     }
 
-    if (this.x == ox && this.y == oy)
+    if (this.x == ox && this.y == oy) {
+      this.rest();
       return;
+    }
 
     if (this.map.get(this.x, this.y).type != TileType.basic
        || this.map.isOut(this.x, this.y)) {
@@ -125,6 +167,7 @@ class Enemy extends Entity {
       return;
     }
 
+    this.rest();
     this.map.evict(ox, oy);
     this.map.insert(this);
   }
@@ -220,19 +263,9 @@ class Player extends Entity {
 
     this.sprite = loadImage("assets/player.png");
     this.name = "Theseus";
-    this.level = 1;
-    this.xp = 0;
     this.rested = 0;
 
     this.pack = new Inventory();
-  }
-
-  rest() {
-    this.rested += 1;
-    if (this.rested > 3) {
-      this.rested = 0;
-      this.hp += 1;
-    }
   }
 
   move() {
@@ -277,7 +310,7 @@ class Player extends Entity {
 
     if (tgt.hasItem()) {
       for (let i = 0; i < tgt.items.length; i++) {
-        this.logs.push("picked up "+tgt.items[i].id);
+        this.logs.push("Picked up "+tgt.items[i].name);
         this.pickUp(tgt.items[i]);
       }
       tgt.clearItems();
