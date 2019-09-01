@@ -32,11 +32,20 @@ class Entity {
   }
 
   draw(x, y) {
+    if (this.name == "Minotaur") {
+      push();
+      fill(255, 255, 255, 100);
+      noStroke();
+      rect(x, y, tile.size, tile.size, 10);
+      pop();
+    }
+
     if (this.hp <= this.hpMax/2) {
       fill(200, 0, 0, 150);
       noStroke();
-      rect(x, y, tile.size, tile.size, tile.c);
+      rect(x, y, tile.size, tile.size);
     }
+
     imageMode(CENTER);
     image(this.sprite, x+tile.hsize,
       y+tile.hsize, tile.size, tile.size);

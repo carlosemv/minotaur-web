@@ -48,12 +48,12 @@ class Tile {
     stroke(180, 0, 0);
     switch (this.type) {
       case TileType.basic:
-        stroke(150);
+        stroke(this.distance*150);
         strokeWeight(1);
-        fill(165+this.distance*32);
+        fill(80+this.distance*160);
         break;
       case TileType.wall:
-        fill(30+this.distance*100, 0, 0);
+        fill(20+this.distance*120, 0, 0);
         stroke(10);
         strokeWeight(1);
         break;
@@ -62,7 +62,7 @@ class Tile {
         noStroke();
     }
 
-    rect(x, y, tile.size, tile.size, tile.c);
+    rect(x, y, tile.size, tile.size);
     if (this.hasItem()) {
       for (let i = 0; i < this.items.length; i++)
         this.items[i].draw(x, y);

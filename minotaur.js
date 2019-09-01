@@ -41,7 +41,7 @@ function setup() {
   mapRadius = 0.99 * mapSz / 2;
   layerSz = mapRadius / layers;
 
-  tile = {size: tileSz, hsize: tileSz/2, c: 1};
+  tile = {size: tileSz, hsize: tileSz/2};
 
   pov.hw = Math.floor(pov.w/2);
   pov.hh = Math.floor(pov.h/2);
