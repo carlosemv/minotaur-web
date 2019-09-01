@@ -290,12 +290,13 @@ class Player extends Entity {
     if (tries >= maxTries)
       throw "Unable to place player";
 
-    var attrs = new Attributes(20, 1, 3, 1);
+    var attrs = new Attributes(20, 2, 4, 2);
     super(attrs, x, y, map, logs);
 
     this.sprite = loadImage("assets/player.png");
     this.name = "Theseus";
 
+    this.dir = null;
     this.resting = false;
     this.maxLevel = 10;
     this.points = 0;
@@ -359,7 +360,11 @@ class Player extends Entity {
   }
 
   move() {
-    if (keyWentDown(12)) {
+    if (this.dir == null)
+      return false;
+
+    if (this.dir == 12) {
+      this.dir = null;
       this.resting = false;
       this.rest();
       return true;
@@ -368,14 +373,15 @@ class Player extends Entity {
     var ox = this.x;
     var oy = this.y;
 
-    if (keyWentDown(35) || keyWentDown(36) || keyWentDown(37))
+    if (this.dir == 35 || this.dir == 36 || this.dir == 37)
       this.x -= 1;
-    if (keyWentDown(33) || keyWentDown(34) || keyWentDown(39))
+    if (this.dir == 33 || this.dir == 34 || this.dir == 39)
       this.x += 1;
-    if (keyWentDown(33) || keyWentDown(36) || keyWentDown(38))
+    if (this.dir == 33 || this.dir == 36 || this.dir == 38)
       this.y -= 1;
-    if (keyWentDown(34) || keyWentDown(35) || keyWentDown(40))
+    if (this.dir == 34 || this.dir == 35 || this.dir == 40)
       this.y += 1;
+    this.dir = null;
 
     if (this.x == ox && this.y == oy) {
       // did not move
@@ -501,18 +507,18 @@ var enemyRanks = ["caveLizard", "giantBat", "gargantuanSpider",
   "lamia", "basilisk", "manticore", "keres"];
 
 var enemyAttrs = {
-  "caveLizard": new Attributes(8, 1, 3, 1),
+  "caveLizard": new Attributes(8, 2, 3, 1),
   "giantBat": new Attributes(5, 3, 3, 1),
   "gargantuanSpider": new Attributes(15, 3, 4, 2),
-  "tartareanBeetle": new Attributes(30, 4, 8, 3),
-  "golem": new Attributes(40, 5, 10, 4),
-  "elemental": new Attributes(40, 6, 12, 4),
-  "cacodaemon": new Attributes(30, 6, 15, 5),
-  "lamia": new Attributes(40, 9, 20, 6),
-  "basilisk": new Attributes(60, 12, 18, 7),
-  "manticore": new Attributes(70, 12, 20, 6),
-  "keres": new Attributes(60, 16, 20, 8),
-  "minotaur": new Attributes(120, 20, 25, 10)
+  "tartareanBeetle": new Attributes(25, 6, 8, 3),
+  "golem": new Attributes(35, 9, 10, 4),
+  "elemental": new Attributes(46, 13, 12, 4),
+  "cacodaemon": new Attributes(40, 17, 15, 5),
+  "lamia": new Attributes(50, 21, 20, 6),
+  "basilisk": new Attributes(50, 20, 18, 7),
+  "manticore": new Attributes(50, 25, 20, 7),
+  "keres": new Attributes(60, 30, 20, 8),
+  "minotaur": new Attributes(100, 35, 25, 10)
 };
 
 var enemyNames = {

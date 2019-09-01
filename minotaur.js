@@ -16,6 +16,8 @@ var turns = 0; // turns played in current game
 var logs = []; // game log
 var maxSeed = Math.pow(10, 8); // maximum seed value
 var seed = null; // seed used to generate game
+
+var player; // player
 var world; // game map
 var enemies; // set of enemies
 
@@ -23,6 +25,28 @@ var GameState = {"menu":1, "intro": 2,
   "game":3, "victory":4, "defeat":5};
 Object.freeze(GameState);
 var state = GameState.menu;
+
+// handle key repetition on hold for player movement
+var dirMap = {};
+var stdDirs = [35, 40, 34, 37, 12, 39, 36, 38, 33];
+var numlockDirs = [97, 98, 99, 100, 101, 102, 103, 104, 105];
+var repeatMap = {};
+function pressKey(code) {
+  player.dir = code;
+}
+
+function keyPressed() {
+  if (player && keyCode in dirMap) {
+    let code = dirMap[keyCode];
+    pressKey(code);
+    repeatMap[code] = setInterval(pressKey, 200, code);
+  }
+}
+
+function keyReleased() {
+  if (player && keyCode in dirMap)
+    clearInterval(repeatMap[dirMap[keyCode]]);
+}
 
 function preload() {
   athenianSprite = loadImage("assets/athenian.png");
@@ -50,6 +74,11 @@ function setup() {
   statsWidth = res.w-(tileSz*pov.w+2*statsOrigin.x);
 
   createCanvas(res.w, res.h);
+
+  for (let i = 0; i < stdDirs.length; i++) {
+    dirMap[stdDirs[i]] = stdDirs[i];
+    dirMap[numlockDirs[i]] = stdDirs[i];
+  }
 }
 
 function draw() {
