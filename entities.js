@@ -91,7 +91,9 @@ class Entity {
     if (this.xp >= xpNeeded) {
       this.xp -= xpNeeded;
       this.level++;
+
       this.hpMax += 2;
+      this.hp += 2;
       this.att++;
       this.dmg += 2;
       this.def++;
