@@ -196,7 +196,7 @@ function drawItemMenu() {
   text(attText, res.w/2, menuLine);
   menuLine += lineHeight;
 
-  let dmgText = "dmg: "+menuItem.dmg;
+  let dmgText = "Damage: "+menuItem.dmg;
   if (!menuItem.equipped) {
     dmgText += " (";
     dmgText += prevItem.dmg <= menuItem.dmg ? "+" : "-";
