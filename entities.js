@@ -360,14 +360,33 @@ class Player extends Entity {
   }
 
   move() {
-    if (this.dir == null)
-      return false;
-
     if (this.dir == 12) {
       this.dir = null;
       this.resting = false;
       this.rest();
       return true;
+    }
+
+    if (this.dir == null) {
+      // did not move
+      if (this.resting) {
+        // if on extended rest
+        if (this.hp < this.hpMax) {
+          // rest, if necessary
+          this.rest();
+          return true;
+        } else {
+          // or stop resting
+          this.resting = false;
+          return false;
+        }
+      } else {
+        // not a turn if did not move or rest
+        return false;
+      }
+    } else if (this.resting) {
+      // if moved while on extended rest, stop resting
+      this.resting = false;
     }
 
     var ox = this.x;
@@ -382,27 +401,6 @@ class Player extends Entity {
     if (this.dir == 34 || this.dir == 35 || this.dir == 40)
       this.y += 1;
     this.dir = null;
-
-    if (this.x == ox && this.y == oy) {
-      // did not move
-      if (this.resting) {
-        // if on extended rest
-        if (this.hp < this.hpMax) {
-          // rest, if necessary
-          this.rest();
-          return true;
-        } else {
-          // or stop resting
-          this.resting = false;
-        }
-      } else {
-        // not a turn if did not move or rest
-        return false;
-      }
-    } else if (this.resting) {
-      // if moved while on extended rest, stop resting
-      this.resting = false;
-    }
 
     // wall collision
     var tgt = this.map.get(this.x, this.y);
