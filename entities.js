@@ -510,12 +510,12 @@ var enemyAttrs = {
   "gargantuanSpider": new Attributes(15, 3, 4, 2),
   "tartareanBeetle": new Attributes(25, 6, 8, 3),
   "golem": new Attributes(35, 9, 10, 4),
-  "elemental": new Attributes(46, 13, 12, 4),
-  "cacodaemon": new Attributes(40, 17, 15, 5),
-  "lamia": new Attributes(50, 21, 20, 6),
+  "elemental": new Attributes(46, 12, 12, 4),
+  "cacodaemon": new Attributes(40, 16, 15, 5),
+  "lamia": new Attributes(50, 20, 18, 6),
   "basilisk": new Attributes(50, 20, 18, 7),
   "manticore": new Attributes(50, 25, 20, 7),
-  "keres": new Attributes(60, 30, 20, 8),
+  "keres": new Attributes(60, 30, 18, 8),
   "minotaur": new Attributes(100, 35, 25, 10)
 };
 

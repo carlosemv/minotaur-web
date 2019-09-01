@@ -221,7 +221,7 @@ function setupItems() {
   }
 
   var maxTries = 100;
-  var numItems = Math.ceil(gridSz*gridSz*0.001);
+  var numItems = Math.ceil(gridSz*gridSz*0.002);
   for (var i = 0; i < numItems; i++) {
     var tries = 0;
     do {
