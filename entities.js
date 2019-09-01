@@ -14,6 +14,7 @@ class Entity {
     this.damage = attrs.damage;
     this.def = attrs.def;
     this.hp = this.hpMax;
+    this.immune = false;
     this.rested = 0;
 
     this.level = 1;
@@ -42,21 +43,27 @@ class Entity {
   }
 
   attack(target) {
-    if (this.name === target.name)
+    if (this.name === target.name || target.immune)
       return;
 
     var attRoll = Math.ceil(random(3));
     var defRoll = Math.ceil(random(3));
+    var killed = false;
     if (this.att + attRoll >= target.def + defRoll) {
-      this.logs.push(this.name+" hit "+target.name);
       var dmgRange = Math.ceil(0.1*this.damage);
       var dmgRoll = Math.floor(random(2*dmgRange+1)) - dmgRange;
+      this.logs.push(this.name+" hit "+target.name);
       var killed = target.hit(this.damage+dmgRoll);
-      if (killed)
+      if (killed) {
+        target.death();
         this.gainXp(target.xpValue());
+        return true;
+      }
     } else {
       this.logs.push(this.name+" missed "+target.name);
     }
+
+    return false;
   }
 
   death() {
@@ -80,17 +87,24 @@ class Entity {
 
   gainXp(xp) {
     this.xp += xp;
-    if (this.xp > this.nextLevel()) {
-      this.xp = 0;
+    var xpNeeded = this.nextLevel();
+    if (this.xp >= xpNeeded) {
+      this.xp -= xpNeeded;
       this.level++;
       this.att++;
       this.damage++;
       this.def++;
+      return true;
     }
+    return false;
   }
 
   nextLevel() {
-    return 3+this.level*2;
+    return this.levelXp(this.level);
+  }
+
+  levelXp(level) {
+    return 3+level*2;
   }
 
   xpValue() {
@@ -99,10 +113,8 @@ class Entity {
 
   hit(dmg) {
     this.hp -= dmg;
-    if (this.hp <= 0) {
-      this.death();
+    if (this.hp <= 0)
       return true;
-    }
 
     return false;
   }
@@ -112,6 +124,23 @@ class Entity {
     return Math.sqrt(dist);
   }
 }
+
+
+class Athenian extends Entity {
+  constructor(map, logs, x, y) {
+    var attrs = new Attributes(10, 1, 5, -10);
+    super(attrs, x, y, map, logs);
+    this.sprite = athenianSprite;
+    this.name = "Athenian";
+    this.immune = true;
+  }
+
+  death() {
+    this.map.evict(this.x, this.y);
+    this.logs.push(this.name+" rescued!");
+  }
+}
+
 
 class Enemy extends Entity {
   constructor(map, logs, x, y, type) {
@@ -231,17 +260,6 @@ class Enemy extends Entity {
   }
 }
 
-class Inventory {
-  constructor() {
-    this.equipped = [];
-    this.items = [];
-  }
-
-  pickUp(item) {
-    this.items.push(item);
-  }
-}
-
 class Player extends Entity {
   constructor(map, logs) {
     var tries = 0, maxTries = 1000;
@@ -257,13 +275,15 @@ class Player extends Entity {
     if (tries >= maxTries)
       throw "Unable to place player";
 
-    var attrs = new Attributes(50, 2, 5, 2);
+    var attrs = new Attributes(100, 50, 50, 50);
     super(attrs, x, y, map, logs);
 
     this.sprite = loadImage("assets/player.png");
     this.name = "Theseus";
-    this.rested = 0;
 
+    this.maxLevel = 10;
+    this.points = 0;
+    this.rescued = 0;
     this.pack = new Inventory();
   }
 
@@ -323,7 +343,7 @@ class Player extends Entity {
     var oy = this.y;
 
 
-    if(keyWentDown(12)) {
+    if (keyWentDown(12)) {
       this.rest();
       return true;
     }
@@ -372,8 +392,47 @@ class Player extends Entity {
     return true;
   }
 
+  gainXp(xp) {
+    if (this.level < this.maxLevel) {
+      var leveled = super.gainXp(xp);
+      if (leveled)
+        this.points += this.level*100;
+      if (this.level == this.maxLevel)
+        this.xp = 0;
+      return leveled;
+    }
+
+    return false;
+  }
+
+
+  attack(target) {
+    if (target.name == "Athenian") {
+      target.death();
+      this.points += 1000;
+      this.rescued++;
+    } else {
+      var killed = super.attack(target);
+      if (killed && target.type == "minotaur") {
+        this.points += 10000;
+        state = GameState.victory;
+      }
+    }
+  }
+
   death() {
-    this.logs.push("player death");
+    state = GameState.defeat;
+  }
+}
+
+class Inventory {
+  constructor() {
+    this.equipped = [];
+    this.items = [];
+  }
+
+  pickUp(item) {
+    this.items.push(item);
   }
 }
 
@@ -413,3 +472,4 @@ var enemyNames = {
 
 var enemySprites = {};
 var nullSprite;
+var athenianSprite;

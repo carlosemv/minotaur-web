@@ -1,7 +1,14 @@
-var statsOrigin, statsWidth;
-var lineHeight = 15;
-var menuItem = null;
-var equipIdx = null, invIdx = null;
+var statsOrigin, statsWidth; // position/size of stats/inventory column
+var lineHeight = 15; // standard heigh of GUI line
+var stdTextSz = 15; // standard GUI text size
+var menuItem = null; // item which has its menu open, if any
+var gameMenu = false; // if game menu is up
+var equipIdx = null, invIdx = null; // for inventory selection
+var optSelect = 0; // for menu option selection
+var menuSprite; // minotaur head menu sprite
+var seedInput; // seed input html element
+var loadSeed = false; // if seed is being input
+var intro; // intro text html element
 
 function drawLog() {
   var logHeight = res.h/5;
@@ -11,7 +18,7 @@ function drawLog() {
   textAlign(LEFT, TOP);
   fill(255);
   noStroke();
-  textSize(14);
+  textSize(stdTextSz);
 
   var logsText = "";
   var numLogs = 6;
@@ -25,12 +32,12 @@ function drawLog() {
   strokeWeight(2);
   noFill();
   rect(statsOrigin.x/2, statsOrigin.y/2,
-    statsWidth+statsOrigin.x/2, logHeight+statsOrigin.y/2);
+    statsWidth+statsOrigin.x/2, logHeight+statsOrigin.y);
+
+  statsOrigin.y += logHeight+lineHeight;
 }
 
 function drawStats() {
-  statsOrigin.y = res.h/5+res.h*0.03;
-
   // draw health bar
   strokeWeight(1);
   stroke(255);
@@ -75,24 +82,25 @@ function drawStats() {
   textAlign(LEFT, CENTER);
   text("Level: "+player.level, statsOrigin.x,
     statsOrigin.y+lineHeight/2);
+  textAlign(RIGHT, CENTER);
+  text("Points: "+player.points, statsWidth,
+    statsOrigin.y+lineHeight/2);
 
   statsOrigin.y += lineHeight;
   textAlign(LEFT, CENTER);
   text("Attack: "+player.att, statsOrigin.x,
     statsOrigin.y+lineHeight/2);
-
   statsOrigin.y += lineHeight;
-  textAlign(LEFT, CENTER);
   text("Damage: "+player.damage, statsOrigin.x,
     statsOrigin.y+lineHeight/2);
-
   statsOrigin.y += lineHeight;
-  textAlign(LEFT, CENTER);
   text("Defense: "+player.def, statsOrigin.x,
     statsOrigin.y+lineHeight/2);
+  statsOrigin.y += lineHeight/2;
 }
 
 function drawInventory() {
+  textAlign(LEFT, CENTER);
   statsOrigin.y += lineHeight;
   stroke(255);
 
@@ -107,11 +115,8 @@ function drawInventory() {
   stroke(100, 100, 0);
   for (let i = 0; i < player.pack.equipped.length; i++) {
     if (i == equipIdx) {
-      fill(255, 30, 30, 150);
-      rect(statsOrigin.x, statsOrigin.y+lineHeight/2,
+      drawSelection(statsOrigin.x, statsOrigin.y+lineHeight/2,
         statsWidth, lineHeight);
-
-      fill(255);
     }
     var item = player.pack.equipped[i];
     statsOrigin.y += lineHeight;
@@ -131,11 +136,8 @@ function drawInventory() {
 
   for (let i = 0; i < player.pack.items.length; i++) {
     if (i == invIdx) {
-      fill(255, 30, 30, 150);
-      rect(statsOrigin.x, statsOrigin.y+lineHeight/2,
+      drawSelection(statsOrigin.x, statsOrigin.y+lineHeight/2,
         statsWidth, lineHeight);
-
-      fill(255);
     }
     var item = player.pack.items[i];
     statsOrigin.y += lineHeight;
@@ -146,24 +148,24 @@ function drawInventory() {
 
 function drawHelpBar() {
   var origin = {x:Math.round(res.w*0.05), y:tileSz*pov.h};
-  // rect(origin.x, origin.y, res.w-2*origin.x, res.h-origin.y);
   var center = {x: res.w/2, y: origin.y+(res.h-origin.y)/2};
 
   var barText = "(Esc) Menu\t\t(i) Inventory\t\t(e) "
-    + "Equipment\t\t(z) Rest\t\t(t) Talk\t\t(?) Help";
+    + "Equipment\t\t(z) Rest\t\t(?) Help";
 
   fill(255);
   noStroke();
-  textSize(18);
+  textSize(stdTextSz+3);
   textAlign(CENTER, CENTER);
   text(barText, center.x, center.y);
 }
 
-function itemMenu() {
+function drawItemMenu() {
+  var menuWidth = res.w/3;
   fill(0);
   stroke(255);
   strokeWeight(1);
-  rect(res.w/3, res.h/3, res.w/3, 8*lineHeight);
+  rect(menuWidth, res.h/3, menuWidth, 8*lineHeight);
 
   var menuLine = res.h/3 + lineHeight;
   fill(255);
@@ -211,8 +213,186 @@ function itemMenu() {
   text(defText, res.w/2, menuLine);
   menuLine += 2*lineHeight;
 
-  if (menuItem.equipped)
-    text("(e) Unequip\t\t(d) Drop", res.w/2, menuLine);
+  var spacing = menuWidth/6;
+
+  var opt1 = menuItem.equipped ? "(e) Unequip" : "(e) Equip";
+  var opt2 = "(d) Drop";
+
+  if (optSelect == 0) {
+    var selWidth = textWidth(opt1)*1.2;
+    drawSelection(res.w/2-spacing-selWidth/2, menuLine,
+      selWidth, lineHeight);
+  } else if (optSelect == 1) {
+    var selWidth = textWidth(opt2)*1.2;
+    drawSelection(res.w/2+spacing-selWidth/2, menuLine,
+      selWidth, lineHeight);
+  }
+
+  text(opt1, res.w/2-spacing, menuLine);
+  text(opt2, res.w/2+spacing, menuLine);
+}
+
+function drawSelection(x, y, w, h) {
+  push();
+  fill(255, 30, 30, 150);
+  rect(x, y, w, h);
+  pop();
+}
+
+function drawMainMenu() {
+  var ypos = height/6;
+
+  var spriteScale = 0.5;
+  var spriteWidth = menuSprite.width * spriteScale;
+  var spriteHeight = menuSprite.height * spriteScale;
+  image(menuSprite, (width-spriteWidth)/2, ypos,
+    spriteWidth, spriteHeight);
+
+  textAlign(CENTER, TOP);
+  textSize(stdTextSz*3);
+  var title = "MINOTAUR";
+  var titleWidth = textWidth(title);
+  ypos += spriteHeight + textAscent()/2;
+
+  fill(255);
+  strokeWeight(3);
+  stroke(200, 0, 0);
+  text(title, width/2, ypos);
+
+  ypos = height/2+lineHeight*4;
+  textSize(stdTextSz);
+  noStroke();
+  var opts = ["(n) New Game", "(l) Load Seed", "(s) Highscores", "(h) Help"];
+  for (let i = 0; i < opts.length; i++) {
+    if (optSelect == i) {
+      var selWidth = textWidth(opts[i])*1.2;
+      drawSelection(width/2-selWidth/2, ypos,
+        selWidth, lineHeight);
+    }
+    text(opts[i], width/2, ypos);
+    if (i == 1 && loadSeed)
+      ypos += lineHeight*4;
+    else
+      ypos += lineHeight*2;
+  }
+}
+
+function drawGameMenu() {
+  var menuWidth = res.w/4;
+  fill(0);
+  stroke(255);
+  strokeWeight(1);
+  rect((res.w-menuWidth)/2, res.h/3,
+    menuWidth, 8*lineHeight);
+
+  var menuLine = res.h/3 + lineHeight;
+  fill(255);
+  noStroke();
+  textAlign(CENTER, TOP);
+
+  var endStats = [
+    "Level "+player.level,
+    player.rescued+" athenians rescued",
+    turns+" turns",
+    "Playing seed "+seed
+  ];
+
+  for (let i = 0; i < endStats.length; ++i) {
+    text(endStats[i], res.w/2, menuLine);
+    menuLine += lineHeight;
+  }
+
+  menuLine += lineHeight;
+  var spacing = menuWidth/5;
+  var opt1 = "(q) Quit";
+  var opt2 = "(h) Help";
+
+  if (optSelect == 0) {
+    var selWidth = textWidth(opt1)*1.1;
+    drawSelection(res.w/2-spacing-selWidth/2, menuLine,
+      selWidth, lineHeight);
+  } else if (optSelect == 1) {
+    var selWidth = textWidth(opt2)*1.1;
+    drawSelection(res.w/2+spacing-selWidth/2, menuLine,
+      selWidth, lineHeight);
+  }
+  text(opt1, res.w/2-spacing, menuLine);
+  text(opt2, res.w/2+spacing, menuLine);
+}
+
+
+function drawEndMenu(victory) {
+  var menuWidth = res.w/4;
+  fill(0);
+  stroke(255);
+  strokeWeight(1);
+  rect((res.w-menuWidth)/2, res.h/3,
+    menuWidth, 11*lineHeight);
+
+  var menuLine = res.h/3 + lineHeight;
+  fill(255);
+  noStroke();
+  textAlign(CENTER, TOP);
+
+  push();
+  if (victory)
+    stroke(255, 215, 0);
   else
-    text("(e) Equip\t\t(d) Drop", res.w/2, menuLine);
+    stroke(200, 0, 0);
+  strokeWeight(3);
+  textSize(3*stdTextSz);
+  text(victory ? "Victory!" : "Defeat",
+    res.w/2, menuLine);
+  menuLine += 3*lineHeight;
+  pop();
+
+  var endStats = [
+    "Level "+player.level,
+    player.rescued+" athenians rescued",
+    turns+" turns",
+    player.points+" points total!"
+  ];
+
+  textSize(stdTextSz);
+  for (let i = 0; i < endStats.length; ++i) {
+    text(endStats[i], res.w/2, menuLine);
+    menuLine += lineHeight;
+  }
+
+  menuLine += lineHeight;
+  var spacing = menuWidth/5;
+  var opt1 = "(t) Try again";
+  var opt2 = "(m) Menu";
+
+  if (optSelect == 0) {
+    var selWidth = textWidth(opt1)*1.1;
+    drawSelection(res.w/2-spacing-selWidth/2, menuLine,
+      selWidth, lineHeight);
+  } else if (optSelect == 1) {
+    var selWidth = textWidth(opt2)*1.1;
+    drawSelection(res.w/2+spacing-selWidth/2, menuLine,
+      selWidth, lineHeight);
+  }
+  text(opt1, res.w/2-spacing, menuLine);
+  text(opt2, res.w/2+spacing, menuLine);
+}
+
+function showIntro() {
+  var introText = `
+    <center><font color="white" size="5">The city of
+    <b>Athens</b> had a debt with the kingdom of <b>Crete</b>,
+    a debt that had to be paid with blood. Every year the king
+    of Athens, Egeus, had to send <b>fourteen youths</b> to Crete.
+    There, they would have to face the <b>labyrinth</b> which
+    housed an <b>unspeakable monstrosity</b>. <b>Theseus</b>,
+    the king's son, a courageous prince, volunteered to
+    <b>take the place</b> of one of those youths. Now he must
+    <b>face the labyrinth, kill the beast therein, and restore
+    peace back to his city!</b><br><br>&lt;Enter&gt;</font></center>
+  `;
+  intro = createDiv(introText);
+  intro.size(width/2, height/2);
+  var ypos = (windowHeight - height)/2 + height/4;
+  intro.position(windowWidth/2-width/4,
+    ypos);
 }
