@@ -92,7 +92,7 @@ function drawStats() {
   text("Attack: "+player.att, statsOrigin.x,
     statsOrigin.y+lineHeight/2);
   statsOrigin.y += lineHeight;
-  text("dmg: "+player.dmg, statsOrigin.x,
+  text("Damage: "+player.dmg, statsOrigin.x,
     statsOrigin.y+lineHeight/2);
   statsOrigin.y += lineHeight;
   text("Defense: "+player.def, statsOrigin.x,
