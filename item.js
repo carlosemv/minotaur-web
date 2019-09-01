@@ -44,16 +44,19 @@ class Item {
     else
       this.name += "Void";
 
+    this.hpMax = 0;
     this.att = 0;
     this.def = 0;
-    this.damage = 0;
+    this.dmg = 0;
 
-    if (type == "weapons" || type == "necklaces" || type == "shoes")
-      this.att = rank*Math.ceil(random(3));
-    if (type == "weapons" || type == "necklaces" || type == "helms")
-      this.damage = rank*Math.ceil(random(4));
-    if (type == "helms" || type == "armors")
-      this.def = rank*Math.ceil(random(3));
+    if (type == "weapons" || type == "shoes" || type == "helms")
+      this.att = rank*Math.ceil(random(2));
+    if (type == "weapons" || type == "necklaces")
+      this.dmg = rank*Math.ceil(random(3));
+    if (type == "helms" || type == "armors" || type == "shoes")
+      this.def = rank*Math.ceil(random(2));
+    if (type == "necklaces" || type == "armors")
+      this.hpMax = rank*Math.ceil(random(3));
 
     this.equipped = false;
   }

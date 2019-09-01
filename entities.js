@@ -1,8 +1,8 @@
 class Attributes {
-  constructor(hpmax, attack, damage, defense) {
+  constructor(hpmax, attack, dmg, defense) {
     this.hpMax = hpmax;
     this.att = attack;
-    this.damage = damage;
+    this.dmg = dmg;
     this.def = defense;
   }
 }
@@ -11,7 +11,7 @@ class Entity {
   constructor(attrs, x, y, map, logs) {
     this.hpMax = attrs.hpMax;
     this.att = attrs.att;
-    this.damage = attrs.damage;
+    this.dmg = attrs.dmg;
     this.def = attrs.def;
     this.hp = this.hpMax;
     this.immune = false;
@@ -50,10 +50,10 @@ class Entity {
     var defRoll = Math.ceil(random(3));
     var killed = false;
     if (this.att + attRoll >= target.def + defRoll) {
-      var dmgRange = Math.ceil(0.1*this.damage);
+      var dmgRange = Math.ceil(0.1*this.dmg);
       var dmgRoll = Math.floor(random(2*dmgRange+1)) - dmgRange;
       this.logs.push(this.name+" hit "+target.name);
-      var killed = target.hit(this.damage+dmgRoll);
+      var killed = target.hit(this.dmg+dmgRoll);
       if (killed) {
         target.death();
         this.gainXp(target.xpValue());
@@ -91,8 +91,9 @@ class Entity {
     if (this.xp >= xpNeeded) {
       this.xp -= xpNeeded;
       this.level++;
+      this.hpMax += 2;
       this.att++;
-      this.damage++;
+      this.dmg += 2;
       this.def++;
       return true;
     }
@@ -104,11 +105,11 @@ class Entity {
   }
 
   levelXp(level) {
-    return 3+level*2;
+    return 5+level*5;
   }
 
   xpValue() {
-    return Math.ceil((this.att+this.damage+this.def)/2);
+    return Math.ceil((this.att+this.def+this.dmg)/2);
   }
 
   hit(dmg) {
@@ -275,12 +276,13 @@ class Player extends Entity {
     if (tries >= maxTries)
       throw "Unable to place player";
 
-    var attrs = new Attributes(100, 50, 50, 50);
+    var attrs = new Attributes(30, 1, 3, 1);
     super(attrs, x, y, map, logs);
 
     this.sprite = loadImage("assets/player.png");
     this.name = "Theseus";
 
+    this.resting = false;
     this.maxLevel = 10;
     this.points = 0;
     this.rescued = 0;
@@ -302,9 +304,11 @@ class Player extends Entity {
     this.pack.equipped.push(item);
 
     item.equipped = true;
+    this.hpMax += item.hpMax;
+    this.hp += item.hpMax;
     this.att += item.att;
     this.def += item.def;
-    this.damage += item.damage;
+    this.dmg += item.dmg;
     return true;
   }
 
@@ -317,9 +321,11 @@ class Player extends Entity {
     this.pack.items.push(item);
 
     item.equipped = false;
+    this.hp -= item.hpMax;
+    this.hpMax -= item.hpMax;
     this.att -= item.att;
     this.def -= item.def;
-    this.damage -= item.damage;
+    this.dmg -= item.dmg;
     return true;
   }
 
@@ -339,14 +345,15 @@ class Player extends Entity {
   }
 
   move() {
-    var ox = this.x;
-    var oy = this.y;
-
-
+    console.log("player move");
     if (keyWentDown(12)) {
+      this.resting = false;
       this.rest();
       return true;
     }
+
+    var ox = this.x;
+    var oy = this.y;
 
     if (keyWentDown(35) || keyWentDown(36) || keyWentDown(37))
       this.x -= 1;
@@ -357,9 +364,28 @@ class Player extends Entity {
     if (keyWentDown(34) || keyWentDown(35) || keyWentDown(40))
       this.y += 1;
 
-    if (this.x == ox && this.y == oy)
-      return false;
+    if (this.x == ox && this.y == oy) {
+      // did not move
+      if (this.resting) {
+        // if on extended rest
+        if (this.hp < this.hpMax) {
+          // rest, if necessary
+          this.rest();
+          return true;
+        } else {
+          // or stop resting
+          this.resting = false;
+        }
+      } else {
+        // not a turn if did not move or rest
+        return false;
+      }
+    } else if (this.resting) {
+      // if moved while on extended rest, stop resting
+      this.resting = false;
+    }
 
+    // wall collision
     var tgt = this.map.get(this.x, this.y);
     if (tgt.type != TileType.basic
         || this.map.isOut(this.x, this.y)) {
@@ -369,6 +395,7 @@ class Player extends Entity {
       return false;
     }
 
+    // entity collision
     if (tgt.occupied()) {
       var tgt = map.get(this.x, this.y).entity;
       this.attack(tgt);
@@ -378,6 +405,7 @@ class Player extends Entity {
       return true;
     }
 
+    // moving over item(s)
     if (tgt.hasItem()) {
       for (let i = 0; i < tgt.items.length; i++) {
         if (this.pickUp(tgt.items[i])) {
@@ -408,7 +436,6 @@ class Player extends Entity {
     return false;
   }
 
-
   attack(target) {
     if (target.name == "Athenian") {
       target.death();
@@ -422,6 +449,15 @@ class Player extends Entity {
       }
     }
   }
+
+  hit(dmg) {
+    if (this.resting) {
+      this.logs.push("Resting interrupted");
+      this.resting = false;
+    }
+    return super.hit(dmg);
+  }
+
 
   death() {
     state = GameState.defeat;
@@ -454,8 +490,8 @@ var enemyRanks = ["caveLizard", "giantBat", "gargantuanSpider",
 var enemyAttrs = {
   "caveLizard": new Attributes(10, 1, 2, 1),
   "giantBat": new Attributes(5, 2, 1, 2),
-  "gargantuanSpider": new Attributes(20, 3, 5, 2),
-  "tartareanBeetle": new Attributes(30, 2, 5, 2),
+  "gargantuanSpider": new Attributes(15, 2, 3, 2),
+  "tartareanBeetle": new Attributes(30, 3, 5, 2),
   "golem": new Attributes(40, 3, 6, 3),
   "elemental": new Attributes(40, 4, 10, 2),
   "cacodaemon": new Attributes(30, 4, 10, 4),
@@ -463,7 +499,7 @@ var enemyAttrs = {
   "basilisk": new Attributes(60, 6, 18, 5),
   "manticore": new Attributes(70, 6, 20, 4),
   "keres": new Attributes(60, 8, 20, 5),
-  "minotaur": new Attributes(110, 10, 25, 8)
+  "minotaur": new Attributes(120, 20, 25, 10)
 };
 
 var enemyNames = {

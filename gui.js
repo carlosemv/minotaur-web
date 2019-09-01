@@ -92,7 +92,7 @@ function drawStats() {
   text("Attack: "+player.att, statsOrigin.x,
     statsOrigin.y+lineHeight/2);
   statsOrigin.y += lineHeight;
-  text("Damage: "+player.damage, statsOrigin.x,
+  text("dmg: "+player.dmg, statsOrigin.x,
     statsOrigin.y+lineHeight/2);
   statsOrigin.y += lineHeight;
   text("Defense: "+player.def, statsOrigin.x,
@@ -166,7 +166,7 @@ function drawItemMenu() {
   fill(0);
   stroke(255);
   strokeWeight(1);
-  rect(menuWidth, res.h/3, menuWidth, 8*lineHeight);
+  rect(menuWidth, res.h/3, menuWidth, 9*lineHeight);
 
   var menuLine = res.h/3 + lineHeight;
   fill(255);
@@ -176,7 +176,7 @@ function drawItemMenu() {
   text(menuItem.name, res.w/2, menuLine);
   menuLine += lineHeight;
 
-  var prevItem = {att: 0, damage: 0, def: 0};
+  var prevItem = {att: 0, dmg: 0, def: 0, hpMax: 0};
   if (!menuItem.equipped) {
     for (let i = 0; i < player.pack.equipped.length; i++) {
       var equipment = player.pack.equipped[i];
@@ -196,13 +196,13 @@ function drawItemMenu() {
   text(attText, res.w/2, menuLine);
   menuLine += lineHeight;
 
-  let damageText = "Damage: "+menuItem.damage;
+  let dmgText = "dmg: "+menuItem.dmg;
   if (!menuItem.equipped) {
-    damageText += " (";
-    damageText += prevItem.damage <= menuItem.damage ? "+" : "-";
-    damageText += Math.abs(menuItem.damage-prevItem.damage)+")";
+    dmgText += " (";
+    dmgText += prevItem.dmg <= menuItem.dmg ? "+" : "-";
+    dmgText += Math.abs(menuItem.dmg-prevItem.dmg)+")";
   }
-  text(damageText, res.w/2, menuLine);
+  text(dmgText, res.w/2, menuLine);
   menuLine += lineHeight;
 
   let defText = "Defense: "+menuItem.def;
@@ -212,6 +212,15 @@ function drawItemMenu() {
     defText += Math.abs(menuItem.def-prevItem.def)+")";
   }
   text(defText, res.w/2, menuLine);
+  menuLine += lineHeight;
+
+  let hpText = "HP Bonus: "+menuItem.hpMax;
+  if (!menuItem.equipped) {
+    hpText += " (";
+    hpText += prevItem.hpMax <= menuItem.hpMax ? "+" : "-";
+    hpText += Math.abs(menuItem.hpMax-prevItem.hpMax)+")";
+  }
+  text(hpText, res.w/2, menuLine);
   menuLine += 2*lineHeight;
 
   var spacing = menuWidth/6;

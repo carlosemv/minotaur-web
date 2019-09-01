@@ -1,12 +1,12 @@
 var pov = {w: 23, h: 17}; // tiles shown to player
-var gridSz = 161; // length of (square) map in tiles
+var gridSz = 261; // length of (square) map in tiles
 var centerTile = {x: Math.floor(gridSz/2), y: Math.floor(gridSz/2)};
 var res; // game screen resolution in pixels
 var tileSz; // (square) tile length in pixels
 var tile; // aux tile info
 var mapSz; // length of (square) map in pixels
 
-var layers = 9; // layers in labyrinth
+var layers = 17; // layers in labyrinth
 var mapRadius; // approximate labyrinth radius in pixels
 var layerSz; // approximate distance between labyrinth layers in pixels
 
@@ -190,7 +190,7 @@ function setupItems() {
   }
 
   var maxTries = 100;
-  var numItems = Math.ceil(gridSz*gridSz*0.005);
+  var numItems = Math.ceil(gridSz*gridSz*0.001);
   for (var i = 0; i < numItems; i++) {
     var tries = 0;
     do {
@@ -291,27 +291,6 @@ function gameControl() {
         optSelect = 0;
       }
     }
-  } else if (menuItem == null && keyWentDown(69)) {
-    // e
-    if (player.pack.equipped.length > 0) {
-      equipIdx = 0;
-      invIdx = null;
-    } else if (player.pack.items.length > 0) {
-      invIdx = 0;
-      equipIdx = null;
-    }
-  } else if (menuItem == null && keyWentDown(73)) {
-    // i
-    if (player.pack.items.length > 0) {
-      invIdx = 0;
-      equipIdx = null;
-    } else if (player.pack.equipped.length > 0) {
-      equipIdx = 0;
-      invIdx = null;
-    }
-  } else if (keyWentDown(72)) {
-    // h
-    help = true;
   } else if (keyWentDown(27)) {
     // esc
     if (menuItem) {
@@ -369,6 +348,7 @@ function gameControl() {
     } else if (keyWentDown(72)
         || (keyWentDown(13) && optSelect == 1)) {
       // h
+      help = true;
       gameMenu = false;
     }
   } else if (player.move()) {
@@ -376,6 +356,31 @@ function gameControl() {
     let playerPos = {x: player.x, y: player.y};
     for (let e of enemies)
       e.move(playerPos);
+  } else if (menuItem == null) {
+    if (keyWentDown(69)) {
+      // e
+      if (player.pack.equipped.length > 0) {
+        equipIdx = 0;
+        invIdx = null;
+      } else if (player.pack.items.length > 0) {
+        invIdx = 0;
+        equipIdx = null;
+      }
+    } else if (keyWentDown(73)) {
+      // i
+      if (player.pack.items.length > 0) {
+        invIdx = 0;
+        equipIdx = null;
+      } else if (player.pack.equipped.length > 0) {
+        equipIdx = 0;
+        invIdx = null;
+      }
+    } else if (keyWentDown(72)) {
+      // h
+      help = true;
+    } else if (keyWentDown(90)) {
+      player.resting = true;
+    }
   }
 }
 
