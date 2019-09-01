@@ -193,8 +193,8 @@ class Enemy extends Entity {
       return;
     }
 
-    if (map.get(this.x, this.y).occupied()) {
-      var tgt = map.get(this.x, this.y).entity;
+    if (this.map.get(this.x, this.y).occupied()) {
+      var tgt = this.map.get(this.x, this.y).entity;
       this.attack(tgt);
 
       this.x = ox;
@@ -401,7 +401,7 @@ class Player extends Entity {
 
     // entity collision
     if (tgt.occupied()) {
-      var tgt = map.get(this.x, this.y).entity;
+      var tgt = this.map.get(this.x, this.y).entity;
       this.attack(tgt);
 
       this.x = ox;

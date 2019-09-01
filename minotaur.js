@@ -1,3 +1,5 @@
+// p5.disableFriendlyErrors = true;
+
 var pov = {w: 23, h: 17}; // tiles shown to player
 var gridSz = 261; // length of (square) map in tiles
 var centerTile = {x: Math.floor(gridSz/2), y: Math.floor(gridSz/2)};
@@ -14,7 +16,7 @@ var turns = 0; // turns played in current game
 var logs = []; // game log
 var maxSeed = Math.pow(10, 8); // maximum seed value
 var seed = null; // seed used to generate game
-var map; // game map
+var world; // game map
 var enemies; // set of enemies
 
 var GameState = {"menu":1, "intro": 2,
@@ -52,6 +54,7 @@ function setup() {
 
 function draw() {
   background(0);
+  // showFPS();
 
   if (state == GameState.menu) {
     mainMenuControl();
@@ -90,9 +93,9 @@ function newGame() {
   labyrinth = new Labyrinth(layers);
   gen = new Kruskal(labyrinth);
   gen.run();
-  map = new TileGrid(labyrinth);
+  world = new TileGrid(labyrinth);
 
-  player = new Player(map, logs);
+  player = new Player(world, logs);
 
   setupEnemies();
   setupAthenians();
@@ -108,7 +111,7 @@ function drawGame() {
 
   for (var dx = -pov.hw; dx <= pov.hw; dx++) {
     for (var dy = -pov.hh; dy <= pov.hh; dy++) {
-      var t = map.get(player.x+dx, player.y+dy);
+      var t = world.get(player.x+dx, player.y+dy);
       var x = gridOrigin.x + tile.size*(dx+pov.hw);
       var y = gridOrigin.y + tile.size*(dy+pov.hh);
       t.draw(x, y);
@@ -139,7 +142,7 @@ function setupEnemies() {
   }
 
   for (let i = 0; i < enemyRanks.length; i++) {
-    var e = new Enemy(map, logs, 0, 0, enemyRanks[i]);
+    var e = new Enemy(world, logs, 0, 0, enemyRanks[i]);
     enemies.add(e);
     console.log(e.type, e.xpValue(), enemyAttrs[e.type]);
     e.death();
@@ -147,7 +150,7 @@ function setupEnemies() {
   
   enemySprites["minotaur"] = loadImage(
     "assets/enemies/minotaur.png");
-  var mino = new Enemy(map, logs, centerTile.x, centerTile.y, "minotaur");
+  var mino = new Enemy(world, logs, centerTile.x, centerTile.y, "minotaur");
   enemies.add(mino);
 
   var maxTries = 100;
@@ -158,11 +161,11 @@ function setupEnemies() {
       var x = Math.floor(random(gridSz));
       var y = Math.floor(random(gridSz));
       tries++;
-    } while(!map.get(x, y).available() && tries < maxTries);
+    } while(!world.get(x, y).available() && tries < maxTries);
     if (tries < maxTries) {
-      var dist = 1 - map.get(x, y).distance;
+      var dist = 1 - world.get(x, y).distance;
       var rank = Math.floor(dist*enemyRanks.length);
-      var enemy = new Enemy(map, logs, x, y, enemyRanks[rank]);
+      var enemy = new Enemy(world, logs, x, y, enemyRanks[rank]);
       enemies.add(enemy);
     } else {
       throw "Unable to place enemy";
@@ -196,9 +199,9 @@ function setupItems() {
       var x = Math.floor(random(gridSz));
       var y = Math.floor(random(gridSz));
       tries++;
-    } while(!map.get(x, y).available() && tries < maxTries);
+    } while(!world.get(x, y).available() && tries < maxTries);
     if (tries < maxTries) {
-      var dist = 1 - map.get(x, y).distance;
+      var dist = 1 - world.get(x, y).distance;
       var rank = 1;
       if (dist > 0.8)
         rank = 3;
@@ -209,7 +212,7 @@ function setupItems() {
       var subtype = null;
       if (type == "weapons")
         subtype = weaponTypes[Math.floor(random(weaponTypes.length))];
-      var item = new Item(map, x, y, type, subtype, rank);      
+      var item = new Item(world, x, y, type, subtype, rank);      
     } else {
       throw "Unable to place item";
     }
@@ -226,9 +229,9 @@ function setupAthenians() {
       var x = Math.floor(random(gridSz));
       var y = Math.floor(random(gridSz));
       tries++;
-    } while(!map.get(x, y).available() && tries < maxTries);
+    } while(!world.get(x, y).available() && tries < maxTries);
     if (tries < maxTries) {
-      var a = new Athenian(map, logs, x, y);
+      var a = new Athenian(world, logs, x, y);
     } else {
       throw "Unable to place athenian";
     }
@@ -451,4 +454,18 @@ function getSeed() {
   seedInput.size(inputWidth, lineHeight);
   seedInput.attribute("placeholder", "seed");
   seedInput.elt.focus();
+}
+
+function showFPS() {
+  let fps = Math.floor(frameRate());
+  push();
+  if (fps < 50)
+    fill(200, 0, 0);
+  else
+    fill(255);
+  stroke(200, 0, 0);
+  textSize(stdTextSz+3);
+  text(fps, width-textWidth(fps)*1.1,
+    height-lineHeight/2);
+  pop();
 }
