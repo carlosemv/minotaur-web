@@ -324,7 +324,7 @@ class Player extends Entity {
   }
 
   pickUp(item) {
-    this.pack.pickUp(item);
+    return this.pack.pickUp(item);
   }
 
   drop(item) {
@@ -380,10 +380,13 @@ class Player extends Entity {
 
     if (tgt.hasItem()) {
       for (let i = 0; i < tgt.items.length; i++) {
-        this.logs.push("Picked up "+tgt.items[i].name);
-        this.pickUp(tgt.items[i]);
+        if (this.pickUp(tgt.items[i])) {
+          this.logs.push("Picked up "+tgt.items[i].name);
+          tgt.removeItemAt(i);
+        } else {
+          this.logs.push("Carrying too much weight");
+        }
       }
-      tgt.clearItems();
     }
 
     this.rest();
@@ -429,10 +432,18 @@ class Inventory {
   constructor() {
     this.equipped = [];
     this.items = [];
+    this.capacity = 13;
+  }
+
+  occupation() {
+    return this.items.length + this.equipped.length;
   }
 
   pickUp(item) {
+    if (this.occupation() >= this.capacity)
+      return false;
     this.items.push(item);
+    return true;
   }
 }
 

@@ -40,6 +40,10 @@ class Tile {
     this.items = [];
   }
 
+  removeItemAt(index) {
+    this.items.splice(index, 1);
+  }
+
   draw(x, y) {
     stroke(180, 0, 0);
     switch (this.type) {
