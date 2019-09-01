@@ -82,13 +82,9 @@ function newGame() {
   turns = 0;
   logs = [];
 
-  if (seed) {
-    randomSeed(seed);
-  } else {
-    // seed = Math.floor(random(maxSeed));
-    seed = 58566483;
-    randomSeed(seed);
-  }
+  if (!seed)
+    seed = Math.floor(random(maxSeed));
+  randomSeed(seed);
   logs.push("Games start, seed: "+seed);
 
   labyrinth = new Labyrinth(layers);
@@ -140,6 +136,13 @@ function setupEnemies() {
   for (let i = 0; i < enemyRanks.length; i++) {
     var e = enemyRanks[i];
     enemySprites[e] = loadImage("assets/enemies/"+e+".png");
+  }
+
+  for (let i = 0; i < enemyRanks.length; i++) {
+    var e = new Enemy(map, logs, 0, 0, enemyRanks[i]);
+    enemies.add(e);
+    console.log(e.type, e.xpValue(), enemyAttrs[e.type]);
+    e.death();
   }
   
   enemySprites["minotaur"] = loadImage(

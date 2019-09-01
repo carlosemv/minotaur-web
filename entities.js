@@ -46,8 +46,11 @@ class Entity {
     if (this.name === target.name || target.immune)
       return;
 
-    var attRoll = Math.ceil(random(3));
-    var defRoll = Math.ceil(random(3));
+    var attVar = Math.ceil(random(this.att*0.25));
+    var defVar = Math.ceil(random(this.def*0.25));
+    var attRoll = Math.ceil(random(attVar));
+    var defRoll = Math.ceil(random(defVar));
+
     var killed = false;
     if (this.att + attRoll >= target.def + defRoll) {
       var dmgRange = Math.ceil(0.1*this.dmg);
@@ -107,7 +110,7 @@ class Entity {
   }
 
   levelXp(level) {
-    return 5+level*5;
+    return 5+level*15;
   }
 
   xpValue() {
@@ -278,7 +281,7 @@ class Player extends Entity {
     if (tries >= maxTries)
       throw "Unable to place player";
 
-    var attrs = new Attributes(30, 1, 3, 1);
+    var attrs = new Attributes(20, 1, 3, 1);
     super(attrs, x, y, map, logs);
 
     this.sprite = loadImage("assets/player.png");
@@ -489,17 +492,17 @@ var enemyRanks = ["caveLizard", "giantBat", "gargantuanSpider",
   "lamia", "basilisk", "manticore", "keres"];
 
 var enemyAttrs = {
-  "caveLizard": new Attributes(10, 1, 2, 1),
-  "giantBat": new Attributes(5, 2, 1, 2),
-  "gargantuanSpider": new Attributes(15, 2, 3, 2),
-  "tartareanBeetle": new Attributes(30, 3, 5, 2),
-  "golem": new Attributes(40, 3, 6, 3),
-  "elemental": new Attributes(40, 4, 10, 2),
-  "cacodaemon": new Attributes(30, 4, 10, 4),
-  "lamia": new Attributes(40, 6, 20, 4),
-  "basilisk": new Attributes(60, 6, 18, 5),
-  "manticore": new Attributes(70, 6, 20, 4),
-  "keres": new Attributes(60, 8, 20, 5),
+  "caveLizard": new Attributes(8, 1, 3, 1),
+  "giantBat": new Attributes(5, 3, 3, 1),
+  "gargantuanSpider": new Attributes(15, 3, 4, 2),
+  "tartareanBeetle": new Attributes(30, 4, 8, 3),
+  "golem": new Attributes(40, 5, 10, 4),
+  "elemental": new Attributes(40, 6, 12, 4),
+  "cacodaemon": new Attributes(30, 6, 15, 5),
+  "lamia": new Attributes(40, 9, 20, 6),
+  "basilisk": new Attributes(60, 12, 18, 7),
+  "manticore": new Attributes(70, 12, 20, 6),
+  "keres": new Attributes(60, 16, 20, 8),
   "minotaur": new Attributes(120, 20, 25, 10)
 };
 
