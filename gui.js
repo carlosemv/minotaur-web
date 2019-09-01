@@ -250,12 +250,13 @@ function drawSelection(x, y, w, h) {
 }
 
 function drawMainMenu() {
-  var ypos = height/6;
+  var ypos = res.h/6;
 
   var spriteScale = 0.5;
   var spriteWidth = menuSprite.width * spriteScale;
   var spriteHeight = menuSprite.height * spriteScale;
-  image(menuSprite, (width-spriteWidth)/2, ypos,
+  imageMode(CORNER);
+  image(menuSprite, (res.w-spriteWidth)/2, ypos,
     spriteWidth, spriteHeight);
 
   textAlign(CENTER, TOP);
