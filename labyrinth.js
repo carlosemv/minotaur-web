@@ -225,10 +225,4 @@ class DisjointSet {
     this.n -= 1;
     return true;
   }
-
-  isTreeDebug() {
-    for (const [key, value] of Object.entries(this.parent)) {
-      console.log(key, value.id);
-    }
-  }
 }

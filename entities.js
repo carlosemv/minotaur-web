@@ -347,7 +347,6 @@ class Player extends Entity {
   }
 
   move() {
-    console.log("player move");
     if (keyWentDown(12)) {
       this.resting = false;
       this.rest();

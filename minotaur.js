@@ -28,10 +28,6 @@ function preload() {
   menuSprite = loadImage("assets/minotaur-head.png");
 }
 
-function keyPressed() {
-  console.log(keyCode);
-}
-
 function setup() {
   res = {w: 960, h: 540};
   if (pov.w % 2 == 0 || pov.h % 2 == 0)
@@ -166,7 +162,7 @@ function setupEnemies() {
       var enemy = new Enemy(map, logs, x, y, enemyRanks[rank]);
       enemies.add(enemy);
     } else {
-      console.log("unable to place enemy");
+      throw "Unable to place enemy";
     }
   }
 }
@@ -212,7 +208,7 @@ function setupItems() {
         subtype = weaponTypes[Math.floor(random(weaponTypes.length))];
       var item = new Item(map, x, y, type, subtype, rank);      
     } else {
-      console.log("unable to place item");
+      throw "Unable to place item";
     }
   }
 }
