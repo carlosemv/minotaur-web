@@ -60,6 +60,8 @@ function draw() {
   if (state == GameState.menu) {
     mainMenuControl();
     drawMainMenu();
+    if (help)
+      drawHelp();
   } else if (state == GameState.game) {
     gameControl();
     drawGame();
@@ -132,6 +134,9 @@ function drawGame() {
 
   if (gameMenu)
     drawGameMenu();
+
+  if (help)
+    drawHelp();
 }
 
 function setupEnemies() {
@@ -304,6 +309,9 @@ function gameControl() {
       equipIdx = 0;
       invIdx = null;
     }
+  } else if (keyWentDown(72)) {
+    // h
+    help = true;
   } else if (keyWentDown(27)) {
     // esc
     if (menuItem) {
@@ -315,9 +323,13 @@ function gameControl() {
     } else if (gameMenu){
       gameMenu = false;
       optSelect = 0;
+    } else if (help) {
+      help = false;
     } else {
       gameMenu = true;
     }
+  } else if (keyWentDown(13) && help) {
+    help = false;
   } else if (menuItem) {
     if (keyWentDown(39)) {
       // right arrow
@@ -403,6 +415,9 @@ function mainMenuControl() {
     if (!seed) seed = null;
     newGame();
     seedInput.remove();
+  } else if (help) {
+    if (keyWentDown(13) || keyWentDown(27))
+      help = false;
   } else if (keyWentDown(78)
       || (keyWentDown(13) && optSelect == 0)) {
     // n
@@ -418,6 +433,7 @@ function mainMenuControl() {
   } else if (keyWentDown(72)
       || (keyWentDown(13) && optSelect == 3)) {
     // h
+    help = true;
   }
 }
 

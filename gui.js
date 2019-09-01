@@ -3,6 +3,7 @@ var lineHeight = 15; // standard heigh of GUI line
 var stdTextSz = 15; // standard GUI text size
 var menuItem = null; // item which has its menu open, if any
 var gameMenu = false; // if game menu is up
+var help = false; // if help menu is up
 var equipIdx = null, invIdx = null; // for inventory selection
 var optSelect = 0; // for menu option selection
 var menuSprite; // minotaur head menu sprite
@@ -151,7 +152,7 @@ function drawHelpBar() {
   var center = {x: res.w/2, y: origin.y+(res.h-origin.y)/2};
 
   var barText = "(Esc) Menu\t\t(i) Inventory\t\t(e) "
-    + "Equipment\t\t(z) Rest\t\t(?) Help";
+    + "Equipment\t\t(z) Rest\t\t(h) Help";
 
   fill(255);
   noStroke();
@@ -375,6 +376,37 @@ function drawEndMenu(victory) {
   }
   text(opt1, res.w/2-spacing, menuLine);
   text(opt2, res.w/2+spacing, menuLine);
+}
+
+function drawHelp() {
+  var menuWidth = res.w/2;
+  var menuHeight = 16*lineHeight;
+
+  fill(0);
+  stroke(255);
+  strokeWeight(1);
+
+  var ypos = (res.h-menuHeight)/2;
+  rect((res.w-menuWidth)/2, ypos, menuWidth, menuHeight);
+
+  var menuLine = ypos + lineHeight;
+  fill(255);
+  noStroke();
+  textAlign(CENTER, TOP);
+
+  var helpText = "Navigate the labyrinth, find the Minotaur in its center,"
+    + " and slay it! Move using a keypad (vertically, horizontally,"
+    + " AND diagonally), moving towars enemies to attack them."
+    + " \n\nNavigate menus with arrows and Enter key,"
+    + " or with shortcuts indicated between parenthesis (such as (h) for help)."
+    + " You can access item menus in this way (i or e then arrows and Enter)"
+    + " or you can simply press Shift + the item's ID (1-9 for equipped items"
+    + " or a-z for inventory).\n\nTip: Rescue the 13 other athenians"
+    + " in the labyrinth for bonus points!";
+
+  var margins = menuWidth*0.05;
+  text(helpText, (res.w-menuWidth)/2+margins/2, menuLine,
+    menuWidth-margins, menuHeight)
 }
 
 function showIntro() {
