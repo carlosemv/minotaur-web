@@ -1,4 +1,4 @@
-// p5.disableFriendlyErrors = true;
+p5.disableFriendlyErrors = true;
 
 var pov = {w: 23, h: 17}; // tiles shown to player
 var gridSz = 261; // length of (square) map in tiles
