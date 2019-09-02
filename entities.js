@@ -424,7 +424,7 @@ class Player extends Entity {
 
     // moving over item(s)
     if (tgt.hasItem()) {
-      for (let i = 0; i < tgt.items.length; i++) {
+      for (let i = 0, n = tgt.items.length; i < n; i++) {
         if (this.pickUp(tgt.items[i])) {
           this.logs.push("Picked up "+tgt.items[i].name);
           tgt.removeItemAt(i);
