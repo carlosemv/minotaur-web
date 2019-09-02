@@ -50,13 +50,13 @@ class Item {
     this.dmg = 0;
 
     if (type == "weapons" || type == "shoes" || type == "helms")
-      this.att = rank+Math.ceil(random(2));
+      this.att = rank+Math.floor(random(2));
     if (type == "weapons" || type == "necklaces")
-      this.dmg = rank+Math.ceil(random(3));
+      this.dmg = rank+Math.floor(random(3));
     if (type == "helms" || type == "armors" || type == "shoes")
-      this.def = rank+Math.ceil(random(2));
+      this.def = rank+Math.floor(random(2));
     if (type == "necklaces" || type == "armors")
-      this.hpMax = rank+Math.ceil(random(3));
+      this.hpMax = rank+Math.floor(random(3));
 
     this.equipped = false;
   }
