@@ -298,6 +298,10 @@ function gameControl() {
         equipIdx = null;
         invIdx = 0;
       }
+    } else if (keyWentDown(27)) {
+        // esc
+        equipIdx = null;
+        invIdx = null;
     }
   } else if (keyIsDown(16)) {
     // shift + (letter or number)
@@ -327,9 +331,6 @@ function gameControl() {
     if (menuItem) {
       menuItem = null;
       optSelect = 0;
-    } else if (equipIdx != null || invIdx != null) {
-      equipIdx = null;
-      invIdx = null;
     } else if (gameMenu){
       gameMenu = false;
       optSelect = 0;
