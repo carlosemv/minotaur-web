@@ -63,9 +63,11 @@ class Entity {
     var killed = false;
     if (this.att + attRoll >= target.def + defRoll) {
       var dmgRange = Math.ceil(0.1*this.dmg);
-      var dmgRoll = Math.floor(random(2*dmgRange+1)) - dmgRange;
-      this.logs.push(this.name+" hit "+target.name);
-      var killed = target.hit(this.dmg+dmgRoll);
+      var dmgRoll = Math.floor(random(2*dmgRange)) - dmgRange;
+      var dmgTotal = this.dmg+dmgRoll;
+      var msg = this.name+" hit "+target.name+" for "+dmgTotal;
+      this.logs.push(msg);
+      var killed = target.hit(dmgTotal);
       if (killed) {
         target.death();
         this.gainXp(target.xpValue());
@@ -511,12 +513,12 @@ var enemyAttrs = {
   "tartareanBeetle": new Attributes(25, 6, 8, 3),
   "golem": new Attributes(35, 9, 10, 4),
   "elemental": new Attributes(46, 12, 12, 4),
-  "cacodaemon": new Attributes(40, 16, 15, 5),
-  "lamia": new Attributes(50, 20, 18, 6),
-  "basilisk": new Attributes(50, 20, 18, 7),
-  "manticore": new Attributes(50, 25, 20, 7),
-  "keres": new Attributes(60, 30, 18, 8),
-  "minotaur": new Attributes(100, 35, 25, 10)
+  "cacodaemon": new Attributes(40, 16, 14, 5),
+  "lamia": new Attributes(50, 20, 15, 6),
+  "basilisk": new Attributes(50, 20, 16, 7),
+  "manticore": new Attributes(50, 25, 18, 7),
+  "keres": new Attributes(60, 30, 16, 8),
+  "minotaur": new Attributes(100, 35, 22, 10)
 };
 
 var enemyNames = {
