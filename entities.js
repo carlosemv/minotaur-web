@@ -300,7 +300,7 @@ class Player extends Entity {
 
     this.dir = null;
     this.resting = false;
-    this.maxLevel = 10;
+    this.maxLevel = 50;
     this.points = 0;
     this.rescued = 0;
     this.pack = new Inventory();
