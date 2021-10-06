@@ -277,7 +277,7 @@ function gameControl() {
       else
         menuItem = player.pack.items[invIdx];
       optSelect = 0;
-    } else if (keyWentDown(38)) {
+    } else if (keyWentDown(38) || keyWentDown(104)) {
       // up
       if (equipIdx > 0) {
         equipIdx--;
@@ -287,7 +287,7 @@ function gameControl() {
         invIdx = null;
         equipIdx = player.pack.equipped.length - 1;
       }
-    } else if (keyWentDown(40)) {
+    } else if (keyWentDown(40) || keyWentDown(98)) {
       // down
       if (invIdx != null && invIdx < player.pack.items.length-1) {
         invIdx++;
@@ -342,10 +342,10 @@ function gameControl() {
   } else if (keyWentDown(13) && help) {
     help = false;
   } else if (menuItem) {
-    if (keyWentDown(39)) {
+    if (keyWentDown(39) || keyWentDown(102)) {
       // right arrow
       optSelect = 1;
-    } else if (keyWentDown(37)) {
+    } else if (keyWentDown(37) || keyWentDown(100)) {
       // left arrow
       optSelect = 0;
     } else if (keyWentDown(69) 
@@ -366,10 +366,10 @@ function gameControl() {
       invIdx = null; equipIdx = null;
     }
   } else if (gameMenu) {
-    if (keyWentDown(39)) {
+    if (keyWentDown(39) || keyWentDown(102)) {
       // right arrow
       optSelect = 1;
-    } else if (keyWentDown(37)) {
+    } else if (keyWentDown(37) || keyWentDown(100)) {
       // left arrow
       optSelect = 0;
     } else if (keyWentDown(81) 
@@ -417,10 +417,10 @@ function gameControl() {
 }
 
 function endMenuControl() {
-  if (keyWentDown(39)) {
+  if (keyWentDown(39) || keyWentDown(102)) {
     // right arrow
     optSelect = 1;
-  } else if (keyWentDown(37)) {
+  } else if (keyWentDown(37) || keyWentDown(100)) {
     // left arrow
     optSelect = 0;
   } else if (keyWentDown(84) 
@@ -437,11 +437,11 @@ function endMenuControl() {
 }
 
 function mainMenuControl() {
-  if (keyWentDown(38)) {
+  if (keyWentDown(38) || keyWentDown(104)) {
     // up
     if (optSelect > 0)
       optSelect--;
-  } else if (keyWentDown(40)) {
+  } else if (keyWentDown(40) || keyWentDown(98)) {
     // down
     if (optSelect < 3)
       optSelect++;
