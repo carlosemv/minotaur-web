@@ -12,7 +12,7 @@ var loadSeed = false; // if seed is being input
 var intro; // intro text html element
 
 function drawLog() {
-  var logHeight = res.h/5;
+  var logHeight = res.h*0.3;
 
   statsOrigin.y = res.h*0.02;
 
@@ -22,10 +22,18 @@ function drawLog() {
   textSize(stdTextSz);
 
   var logsText = "";
-  var numLogs = 6;
-  var start = Math.max(logs.length-numLogs, 0);
-  for (let i = start; i < logs.length; i++)
-    logsText += logs[i] + "\n";
+  var lineCharLimit = 30;
+  var lineLimit = 8;
+  var lines = 0;
+  for (let i = logs.length-1; i >= 0; i--) {
+    // print(logs[i]);
+    // print(Math.floor(logs[i]./lineCharLimit));
+    lines += Math.ceil(logs[i].length/lineCharLimit);
+    // print(lines)
+    if (lines <= lineLimit) {
+      logsText += "• " + logs[i] + "\n";
+    }
+  }
   text(logsText, statsOrigin.x, statsOrigin.y,
     statsWidth, logHeight);
 
